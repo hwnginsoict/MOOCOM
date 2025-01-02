@@ -1,0 +1,1 @@
+# Đã hiểu nhưng chưa code!
