@@ -1,7 +1,7 @@
 import numpy as np
 import random
 
-def create_solution(problem):
+def create_solution(graph):
     """
     Tạo ra một cá thể (chromosome) theo mã hóa LERK.
     Returns:
@@ -10,11 +10,11 @@ def create_solution(problem):
             "objectives": list (rỗng, vì chưa tính fitness)
         }
     """
-    num_nodes = problem.num_nodes
-    num_vehicles = problem.num_vehicles
+    num_nodes = graph.num_nodes
+    vehicle_num = graph.vehicle_num
 
     # Sinh leader keys (thường lớn hơn hẳn so với node keys, ví dụ [num_nodes, 300])
-    leader_keys = np.random.uniform(num_nodes, 300, num_vehicles)
+    leader_keys = np.random.uniform(num_nodes, 300, vehicle_num)
     
     # Sinh node keys [0, 1)
     # Ở đây ta bỏ qua node 0 (thường là depot) nên có num_nodes - 1 keys
@@ -30,10 +30,10 @@ def create_solution(problem):
     return individual
 
 
-def repair_pickup_delivery(problem, solution):
+def repair_pickup_delivery(graph, solution):
     """
     Đảm bảo cặp (p, d) cùng route và p đứng trước d.
-    problem.requests: dict {pickup_node: delivery_node}
+    graph.requests: dict {pickup_node: delivery_node}
     """
     # Xây map: node -> (route_idx, index_in_route)
     node_position = {}
@@ -42,7 +42,7 @@ def repair_pickup_delivery(problem, solution):
             node_position[node] = (r_idx, i)
 
     # Với mỗi pickup p, đảm bảo delivery d ở cùng route p
-    for p, d in problem.requests.items():
+    for p, d in graph.requests.items():
         if p not in node_position or d not in node_position:
             continue  # hoặc chèn logic nếu chưa có p/d trong solution
         
@@ -74,7 +74,7 @@ def repair_pickup_delivery(problem, solution):
     return solution
 
 
-def crossover_operator(problem, parent1, parent2):
+def crossover_operator(graph, parent1, parent2):
     """
     Thực hiện lai ghép (crossover) giữa 2 cá thể cha/mẹ (parent1, parent2)
     Trả về 2 cá thể con (child1, child2) không tính fitness.
@@ -99,13 +99,13 @@ def crossover_operator(problem, parent1, parent2):
     }
 
     # Nếu cần ràng buộc Pickup & Delivery, ta có thể gọi hàm repair ở đây
-    child1 = repair_pickup_delivery(problem, child1)
-    child2 = repair_pickup_delivery(problem, child2)
+    child1 = repair_pickup_delivery(graph, child1)
+    child2 = repair_pickup_delivery(graph, child2)
 
     return child1, child2
 
 
-def mutation_operator(problem, individual, mutation_rate=0.1):
+def mutation_operator(graph, individual, mutation_rate=0.1):
     """
     Đột biến (mutation) lên 1 cá thể, trả về 1 cá thể con.
     """
@@ -125,40 +125,40 @@ def mutation_operator(problem, individual, mutation_rate=0.1):
     }
 
     # Nếu cần ràng buộc Pickup & Delivery, có thể gọi repair ở đây
-    offspring = repair_pickup_delivery(problem, offspring)
+    offspring = repair_pickup_delivery(graph, offspring)
 
     return offspring
 
 
-def cost(problem, route: list):
+def cost_list(graph, route: list):
     distance = 0
     ve_fair = []
     cus_fair = []
     time = 0
     for i in range(1, len(route)):
         
-        if route[i-1] >= problem.graph.num_nodes and route[i] >= problem.graph.num_nodes:
+        if route[i-1] >= graph.num_nodes and route[i] >= graph.num_nodes:
             ve_fair.append(0)
             distance = 0 
             time = 0
             continue
-        elif route[i-1] >= problem.graph.num_nodes:
+        elif route[i-1] >= graph.num_nodes:
             distance = 0
             time = 0
-            distance += problem.graph.dist[0][route[i]]
-            time += problem.graph.dist[0][route[i]] / problem.graph.vehicle_speed
-        elif route[i] >= problem.graph.num_nodes:
-            distance += problem.graph.dist[route[i-1]][0]
-            time += problem.graph.dist[route[i-1]][0] / problem.graph.vehicle_speed
+            distance += graph.dist[0][route[i]]
+            time += graph.dist[0][route[i]] / graph.vehicle_speed
+        elif route[i] >= graph.num_nodes:
+            distance += graph.dist[route[i-1]][0]
+            time += graph.dist[route[i-1]][0] / graph.vehicle_speed
             ve_fair.append(distance)
             distance = 0
             time = 0
             continue
         else:
-            distance += problem.graph.dist[route[i-1]][route[i]]
-            time += problem.graph.dist[route[i-1]][route[i]] / problem.graph.vehicle_speed
+            distance += graph.dist[route[i-1]][route[i]]
+            time += graph.dist[route[i-1]][route[i]] / graph.vehicle_speed
         node = route[i]
-        customer = problem.graph.nodes[node]
+        customer = graph.nodes[node]
         time = max(time, customer.ready_time)
         time += 0 #service time, set to 0
         if time > customer.due_time:
@@ -166,7 +166,7 @@ def cost(problem, route: list):
         else:
             cus_fair.append(0)
     
-    distance += problem.graph.dist[route[-1]][0]
+    distance += graph.dist[route[-1]][0]
     ve_fair.append(distance)
 
     vehicle_fairness = variance(ve_fair)
@@ -175,6 +175,69 @@ def cost(problem, route: list):
 
     # print(len(ve_fair))
     # print(len(cus_fair))
+    return total_distance, vehicle_fairness, customer_fairness
+
+
+def cost(graph, solution):
+    """
+    Tính các chỉ số:
+      1) total_distance  - tổng quãng đường của toàn bộ solution
+      2) vehicle_fairness - độ lệch bình phương trung bình về quãng đường giữa các xe
+      3) customer_fairness - độ lệch bình phương trung bình về trễ hạn khách hàng
+    
+    Args:
+        graph: đối tượng Graph (chứa self.dist, self.nodes, self.vehicle_speed, ...)
+        solution: list of routes, mỗi route là list các node [0, i1, i2, ..., 0] (giả sử 0 là depot)
+    
+    Returns:
+        (total_distance, vehicle_fairness, customer_fairness)
+    """
+    
+    total_distance = 0.0
+    ve_fair = []   # lưu quãng đường của từng vehicle (route)
+    cus_fair = []  # lưu độ trễ (tardiness) của từng khách hàng
+    
+    for route in solution:
+        route_distance = 0.0
+        time = 0.0
+        
+        # Giả sử route = [depot, ..., depot] => tính khoảng cách từng cặp liên tiếp
+        for i in range(len(route) - 1):
+            current_node = route[i]
+            next_node = route[i+1]
+            
+            # Cộng quãng đường giữa current_node -> next_node
+            dist_ij = graph.dist[current_node][next_node]
+            route_distance += dist_ij
+            
+            # Tính thời gian di chuyển
+            travel_time = dist_ij / graph.vehicle_speed if graph.vehicle_speed else 0
+            time += travel_time
+            
+            # Nếu next_node != 0 => đó là khách hàng thật (không phải depot)
+            if next_node != 0:
+                customer = graph.nodes[next_node]
+                
+                # Nếu đến sớm hơn ready_time, phải chờ => time = max(time, ready_time)
+                time = max(time, customer.ready_time)
+                
+                # Ở đây coi service_time = 0, nếu có thì cộng thêm
+                # time += customer.service_time
+                
+                # Nếu trễ hơn due_time => cộng vào cus_fair
+                if time > customer.due_time:
+                    tardiness = time - customer.due_time
+                    cus_fair.append(tardiness)
+                else:
+                    cus_fair.append(0.0)
+        
+        # route_distance chính là quãng đường cho route này
+        ve_fair.append(route_distance)
+        total_distance += route_distance
+    
+    vehicle_fairness = variance(ve_fair)
+    customer_fairness = variance(cus_fair)
+    
     return total_distance, vehicle_fairness, customer_fairness
 
 
@@ -189,25 +252,25 @@ def decode_solution(problem, keys):
     Giải mã từ LERK -> danh sách các route.
     Mỗi route: [leader_key, node1, node2, ...]
     """
-    num_vehicles = problem.num_vehicles
+    vehicle_num = problem.vehicle_num
     num_nodes = problem.num_nodes
     
     # Tách leader_keys và node_keys
-    leader_keys = keys[:num_vehicles]
-    node_keys = keys[num_vehicles:]
+    leader_keys = keys[:vehicle_num]
+    node_keys = keys[vehicle_num:]
     
     # Sắp xếp các node (từ 1..num_nodes-1) theo thứ tự tăng dần của node_keys
     sorted_indices = np.argsort(node_keys)
     remaining_nodes = list(sorted_indices + 1)  # shift +1 vì ta bỏ node 0 (depot)
     
     # Chuẩn bị data structure
-    solution = [[] for _ in range(num_vehicles)]
+    solution = [[] for _ in range(vehicle_num)]
     
     # Sort leader_keys để xác định thứ tự gán route
     sorted_leader_indices = np.argsort(leader_keys)
     
     # Mỗi vehicle một route, route bắt đầu bằng leader "id" 
-    naive_capacity = (num_nodes - 1) // num_vehicles
+    naive_capacity = (num_nodes - 1) // vehicle_num
     
     for i, leader_idx in enumerate(sorted_leader_indices):
         # Lấy route thứ i
@@ -218,7 +281,7 @@ def decode_solution(problem, keys):
     
     # Nếu còn node dư, gán tiếp vòng tròn
     for idx, nd in enumerate(remaining_nodes):
-        solution[idx % num_vehicles].append(nd)
+        solution[idx % vehicle_num].append(nd)
     
     # Ở đây, ta có thể gọi hàm repairPickupDelivery để đảm bảo ràng buộc (nếu cần)
     solution = repair_pickup_delivery(problem, solution)

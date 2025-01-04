@@ -1,7 +1,7 @@
 class Node(object):
     def __init__(self, nid: int, x: float, y: float, demand: float, ready_time: float, due_time: float, service_time: float, pid: int, did: int, time: float):
         # Initialize the instance attributes
-        self.id = nid
+        self.nid = nid
         self.x = x
         self.y = y
         self.demand = demand
