@@ -1,6 +1,13 @@
 import numpy as np
 import random
 
+import sys
+import os
+# Add the parent directory to the module search path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+
+from utils import *
+
 class GA_LERK:
     def __init__(self, graph, problem, num_vehicles, population_size, num_generations):
         self.graph = graph
@@ -43,15 +50,9 @@ class GA_LERK:
     def initialize_population(self):
         """Generate initial population using random keys."""
         for _ in range(self.population_size):
-            # Leader keys in the range [num_nodes, num_nodes + num_vehicles]
-            leader_keys = np.random.uniform(
-                self.num_nodes, 
-                self.num_nodes + self.num_vehicles, 
-                self.num_vehicles
-            )
-            # Node keys in [0, 1]
-            node_keys = np.random.uniform(0, 1, self.num_nodes - 1)
-            
+            # Random keys for vehicles and nodes
+            leader_keys = np.random.uniform(self.num_nodes, 300, self.num_vehicles)  
+            node_keys = np.random.uniform(0, 1, self.num_nodes - 1)  # Node keys in [0, 1]
             individual = np.concatenate((leader_keys, node_keys))
             self.population.append(individual)
 
@@ -117,7 +118,6 @@ class GA_LERK:
             # Case A: pickup and delivery are in different routes -> fix that
             if p_route != d_route:
                 # Move the delivery node 'd' to pickup's route
-                # if d in solution[d_route]:
                 solution[d_route].remove(d)
                 solution[p_route].append(d)
                 # Update route_of_node to reflect the removal
@@ -141,8 +141,7 @@ class GA_LERK:
             if p_pos > d_pos:
                 # We need to reorder p and d
                 route = solution[p_route]
-                if d in solution[d_route]:
-                    solution[d_route].remove(d)
+                route.remove(d)
                 # Insert d right after p
                 route.insert(p_pos + 1, d)
 
