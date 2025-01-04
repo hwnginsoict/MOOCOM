@@ -30,6 +30,49 @@ def create_solution(problem):
     return individual
 
 
+def repair_pickup_delivery(problem, solution):
+    """
+    Đảm bảo cặp (p, d) cùng route và p đứng trước d.
+    problem.requests: dict {pickup_node: delivery_node}
+    """
+    # Xây map: node -> (route_idx, index_in_route)
+    node_position = {}
+    for r_idx, route in enumerate(solution):
+        for i, node in enumerate(route):
+            node_position[node] = (r_idx, i)
+
+    # Với mỗi pickup p, đảm bảo delivery d ở cùng route p
+    for p, d in problem.requests.items():
+        if p not in node_position or d not in node_position:
+            continue  # hoặc chèn logic nếu chưa có p/d trong solution
+        
+        p_r, p_i = node_position[p]
+        d_r, d_i = node_position[d]
+        
+        # Nếu khác route, move d về route p
+        if p_r != d_r:
+            solution[d_r].remove(d)
+            solution[p_r].append(d)
+            # Cập nhật lại node_position cho route cũ
+            for i, nd in enumerate(solution[d_r]):
+                node_position[nd] = (d_r, i)
+            # Cập nhật lại node_position cho route mới
+            new_index = len(solution[p_r]) - 1
+            node_position[d] = (p_r, new_index)
+            d_r, d_i = p_r, new_index
+        
+        # Đảm bảo p_i < d_i
+        if p_i > d_i:
+            # Move d để nằm sau p
+            route = solution[p_r]
+            route.remove(d)
+            route.insert(p_i + 1, d)
+            # Cập nhật lại index
+            for i, nd in enumerate(route):
+                node_position[nd] = (p_r, i)
+
+    return solution
+
 
 def crossover_operator(problem, parent1, parent2):
     """
@@ -82,40 +125,63 @@ def mutation_operator(problem, individual, mutation_rate=0.1):
     }
 
     # Nếu cần ràng buộc Pickup & Delivery, có thể gọi repair ở đây
-    # offspring = repair_pickup_delivery(problem, offspring)
+    offspring = repair_pickup_delivery(problem, offspring)
 
     return offspring
 
 
-def cal_fitness(problem, individual):
-    """
-    Tính hàm mục tiêu (fitness) cho individual.
-    Ở đây ví dụ tính tổng quãng đường, trả về list (đa mục tiêu).
-    """
-    # 1) Decode solution từ random keys
-    solution = decode_solution(problem, individual["keys"])
+def cost(problem, route: list):
+    distance = 0
+    ve_fair = []
+    cus_fair = []
+    time = 0
+    for i in range(1, len(route)):
+        
+        if route[i-1] >= problem.graph.num_nodes and route[i] >= problem.graph.num_nodes:
+            ve_fair.append(0)
+            distance = 0 
+            time = 0
+            continue
+        elif route[i-1] >= problem.graph.num_nodes:
+            distance = 0
+            time = 0
+            distance += problem.graph.dist[0][route[i]]
+            time += problem.graph.dist[0][route[i]] / problem.graph.vehicle_speed
+        elif route[i] >= problem.graph.num_nodes:
+            distance += problem.graph.dist[route[i-1]][0]
+            time += problem.graph.dist[route[i-1]][0] / problem.graph.vehicle_speed
+            ve_fair.append(distance)
+            distance = 0
+            time = 0
+            continue
+        else:
+            distance += problem.graph.dist[route[i-1]][route[i]]
+            time += problem.graph.dist[route[i-1]][route[i]] / problem.graph.vehicle_speed
+        node = route[i]
+        customer = problem.graph.nodes[node]
+        time = max(time, customer.ready_time)
+        time += 0 #service time, set to 0
+        if time > customer.due_time:
+            cus_fair.append(time - customer.due_time)
+        else:
+            cus_fair.append(0)
     
-    # 2) Tính quãng đường
-    dist_matrix = problem.graph.dist  # hoặc problem.graph.dist
-    total_distance = 0.0
-    for route in solution:
-        # route[0] là leader key (trong decode_solution)
-        # route[1:] là các node
-        nodes = route[1:]
-        for i in range(1, len(nodes)):
-            prev_node = nodes[i-1]
-            curr_node = nodes[i]
-            total_distance += dist_matrix[prev_node][curr_node]
+    distance += problem.graph.dist[route[-1]][0]
+    ve_fair.append(distance)
 
-    # Giả sử ta chỉ có 1 mục tiêu là tổng quãng đường
-    # Thông thường bài toán Minimization => ta trả về total_distance
-    # Nếu GA framework muốn maximize fitness,
-    # có thể trả về 1/total_distance hoặc -total_distance tuỳ cách quy ước
-    objectives = [total_distance]  
+    vehicle_fairness = variance(ve_fair)
+    total_distance = sum(ve_fair)
+    customer_fairness = variance(cus_fair)
 
-    # 3) Lưu kết quả vào individual
-    individual["objectives"] = objectives
-    return objectives
+    # print(len(ve_fair))
+    # print(len(cus_fair))
+    return total_distance, vehicle_fairness, customer_fairness
+
+
+def variance(list):
+    mean = sum(list) / len(list)
+    variance = sum((x - mean) ** 2 for x in list) / len(list)
+    return variance
 
 
 def decode_solution(problem, keys):
@@ -155,50 +221,37 @@ def decode_solution(problem, keys):
         solution[idx % num_vehicles].append(nd)
     
     # Ở đây, ta có thể gọi hàm repairPickupDelivery để đảm bảo ràng buộc (nếu cần)
-    # solution = repair_pickup_delivery(problem, solution)
+    solution = repair_pickup_delivery(problem, solution)
     
     return solution
 
 
-def repair_pickup_delivery(problem, solution):
+def cal_fitness(problem, individual):
     """
-    Đảm bảo cặp (p, d) cùng route và p đứng trước d.
-    problem.requests: dict {pickup_node: delivery_node}
+    Tính toán fitness (đa mục tiêu) cho một cá thể (individual).
+    Ở đây, ta sử dụng hàm cost(route) trả về:
+        total_distance, vehicle_fairness, customer_fairness
+    Lưu các giá trị đó thành list và gán vào individual["objectives"].
+    
+    Args:
+        problem: đối tượng chứa thông tin bài toán (trong đó có .cost(route)).
+        individual (dict): 
+            {
+                "keys": np.ndarray (mãng LERK),
+                "objectives": list rỗng hoặc đã tính
+            }
+
+    Returns:
+        list: [total_distance, vehicle_fairness, customer_fairness]
     """
-    # Xây map: node -> (route_idx, index_in_route)
-    node_position = {}
-    for r_idx, route in enumerate(solution):
-        for i, node in enumerate(route):
-            node_position[node] = (r_idx, i)
-
-    # Với mỗi pickup p, đảm bảo delivery d ở cùng route p
-    for p, d in problem.requests.items():
-        if p not in node_position or d not in node_position:
-            continue  # hoặc chèn logic nếu chưa có p/d trong solution
-        
-        p_r, p_i = node_position[p]
-        d_r, d_i = node_position[d]
-        
-        # Nếu khác route, move d về route p
-        if p_r != d_r:
-            solution[d_r].remove(d)
-            solution[p_r].append(d)
-            # Cập nhật lại node_position cho route cũ
-            for i, nd in enumerate(solution[d_r]):
-                node_position[nd] = (d_r, i)
-            # Cập nhật lại node_position cho route mới
-            new_index = len(solution[p_r]) - 1
-            node_position[d] = (p_r, new_index)
-            d_r, d_i = p_r, new_index
-        
-        # Đảm bảo p_i < d_i
-        if p_i > d_i:
-            # Move d để nằm sau p
-            route = solution[p_r]
-            route.remove(d)
-            route.insert(p_i + 1, d)
-            # Cập nhật lại index
-            for i, nd in enumerate(route):
-                node_position[nd] = (p_r, i)
-
-    return solution
+    # 1) Giải mã từ random keys -> route (dạng một list duy nhất 
+    #    có chèn sentinel >= problem.graph.num_nodes để đánh dấu chia tuyến)
+    route = decode_solution(problem, individual["keys"])
+    
+    # 2) Tính cost
+    total_distance, vehicle_fairness, customer_fairness = cost(problem, route)
+    
+    # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
+    individual["objectives"] = [total_distance, vehicle_fairness, customer_fairness]
+    
+    return individual["objectives"]
