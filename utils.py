@@ -1,5 +1,6 @@
 import numpy as np
 import random
+from population import *
 
 def create_solution(graph):
     """
@@ -27,6 +28,32 @@ def create_solution(graph):
         "keys": keys,
         "objectives": []  # chưa tính fitness, để trống
     }
+    return individual
+
+
+def create_individual(graph):
+    """
+    Tạo ra một cá thể (chromosome) theo mã hóa LERK.
+    Returns:
+        individual (Individual): {
+            .chromosome: np.ndarray (leader keys + node keys),
+            .objectives: list (rỗng, vì chưa tính fitness)
+        }
+    """
+    num_nodes = graph.num_nodes
+    vehicle_num = graph.vehicle_num
+
+    # Sinh leader keys (thường lớn hơn hẳn so với node keys, ví dụ [num_nodes, 300])
+    leader_keys = np.random.uniform(num_nodes, 300, vehicle_num)
+    
+    # Sinh node keys [0, 1)
+    # Ở đây ta bỏ qua node 0 (thường là depot) nên có num_nodes - 1 keys
+    node_keys = np.random.uniform(0, 1, num_nodes - 1)
+    
+    # Ghép leader_keys và node_keys
+    keys = np.concatenate((leader_keys, node_keys))
+
+    individual = Individual(keys)
     return individual
 
 
@@ -74,7 +101,7 @@ def repair_pickup_delivery(graph, solution):
     return solution
 
 
-def crossover_operator(graph, parent1, parent2):
+def crossover_operator_old(graph, parent1, parent2):
     """
     Thực hiện lai ghép (crossover) giữa 2 cá thể cha/mẹ (parent1, parent2)
     Trả về 2 cá thể con (child1, child2) không tính fitness.
@@ -99,13 +126,39 @@ def crossover_operator(graph, parent1, parent2):
     }
 
     # Nếu cần ràng buộc Pickup & Delivery, ta có thể gọi hàm repair ở đây
-    child1 = repair_pickup_delivery(graph, child1)
-    child2 = repair_pickup_delivery(graph, child2)
+
+    # child1 = repair_pickup_delivery(graph, child1)
+    # child2 = repair_pickup_delivery(graph, child2)
 
     return child1, child2
 
 
-def mutation_operator(graph, individual, mutation_rate=0.1):
+def crossover_operator(graph, parent1, parent2):
+    """
+    Thực hiện lai ghép (crossover) giữa 2 cá thể cha/mẹ (parent1, parent2)
+    Trả về 2 cá thể con (child1, child2) không tính fitness.
+    """
+    p1_keys = parent1.chromosome
+    p2_keys = parent2.chromosome
+    length = len(p1_keys)
+    
+    # Uniform crossover
+    mask = np.random.randint(0, 2, length)
+    c1_keys = np.where(mask, p1_keys, p2_keys)
+    c2_keys = np.where(mask, p2_keys, p1_keys)
+
+    # Tạo 2 cá thể con
+    child1 = Individual(c1_keys)
+    child2 = Individual(c2_keys)
+    # Nếu cần ràng buộc Pickup & Delivery, ta có thể gọi hàm repair ở đây
+
+    # child1 = repair_pickup_delivery(graph, child1.chromosome)
+    # child2 = repair_pickup_delivery(graph, child2.chromosome)
+
+    return child1, child2
+
+
+def mutation_operator_old(graph, individual, mutation_rate=0.1):
     """
     Đột biến (mutation) lên 1 cá thể, trả về 1 cá thể con.
     """
@@ -126,6 +179,28 @@ def mutation_operator(graph, individual, mutation_rate=0.1):
 
     # Nếu cần ràng buộc Pickup & Delivery, có thể gọi repair ở đây
     offspring = repair_pickup_delivery(graph, offspring)
+
+    return offspring
+
+
+def mutation_operator(graph, individual, mutation_rate=0.1):
+    """
+    Đột biến (mutation) lên 1 cá thể, trả về 1 cá thể con.
+    """
+    keys = individual.chromosome.copy()
+    
+    for i in range(len(keys)):
+        if random.random() < mutation_rate:
+            # Gaussian noise
+            keys[i] += np.random.normal(0, 0.1)
+    
+    # Không cho keys âm
+    keys = np.clip(keys, 0, None)
+    
+    offspring = Individual(keys)
+
+    # Nếu cần ràng buộc Pickup & Delivery, có thể gọi repair ở đây
+    # offspring = repair_pickup_delivery(graph, offspring)
 
     return offspring
 
@@ -318,3 +393,30 @@ def cal_fitness(problem, individual):
     individual["objectives"] = [total_distance, vehicle_fairness, customer_fairness]
     
     return individual["objectives"]
+
+
+def calculate_fitness(problem, individual):
+    """
+    Tính toán fitness (đa mục tiêu) cho một cá thể (individual).
+    Ở đây, ta sử dụng hàm cost(route) trả về:
+        total_distance, vehicle_fairness, customer_fairness
+    Lưu các giá trị đó thành list và gán vào individual["objectives"].
+    
+    Args:
+        problem: đối tượng chứa thông tin bài toán (trong đó có .cost(route)).
+        individual: đối tượng, có .chromosome và .objectives
+
+    Returns:
+        list: [total_distance, vehicle_fairness, customer_fairness]
+    """
+    # 1) Giải mã từ random keys -> route (dạng một list duy nhất 
+    #    có chèn sentinel >= problem.graph.num_nodes để đánh dấu chia tuyến)
+    route = decode_solution(problem, individual.chromosome)
+    
+    # 2) Tính cost
+    total_distance, vehicle_fairness, customer_fairness = cost(problem, route)
+    
+    # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
+    individual.objectives = [total_distance, vehicle_fairness, customer_fairness]
+    
+    return individual.objectives

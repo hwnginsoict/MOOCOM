@@ -1,5 +1,6 @@
 import numpy as np
 from copy import deepcopy
+from utils import *
 
 class Individual:
     def __init__(self, chromosome = None):
@@ -50,7 +51,4 @@ class Population:
             offspring.append(off2)
         return offspring
     
-def cal_fitness(problem, individual):
-    pass
-
         
