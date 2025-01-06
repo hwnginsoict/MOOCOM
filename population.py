@@ -1,6 +1,5 @@
 import numpy as np
 from copy import deepcopy
-from utils import *
 
 class Individual:
     def __init__(self, chromosome = None):

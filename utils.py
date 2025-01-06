@@ -1,6 +1,6 @@
 import numpy as np
 import random
-from population import *
+from population import Individual, Population
 
 def create_solution(graph):
     """
