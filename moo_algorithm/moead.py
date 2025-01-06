@@ -1,9 +1,10 @@
 import multiprocessing
+import numpy as np
+
+
+# Add the parent directory to the module search path
 import sys
 import os
-from metric import cal_hv_front
-import numpy as np
-# Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from population import Population, Individual
 from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
@@ -109,7 +110,6 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     
     moead_pop.update_external(moead_pop.indivs)
     # moead_pop.update_weights(problem, moead_pop.indivs)
-    print("Generation 0: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
     for gen in range(max_gen):
         offspring = moead_pop.reproduction(problem, crossover_operator)
@@ -120,9 +120,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         for individual, fitness in zip(offspring, result):
             individual.objectives = fitness
         moead_pop.update_external(offspring)
-        moead_pop.indivs.extend(offspring)
         # moead_pop.update_weights(problem, offspring)
-        print("Generation {}: ".format(gen + 1), cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
         moead_pop.natural_selection()
     pool.close()
     return moead_pop.external_pop
@@ -132,7 +130,7 @@ if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_moead(4, graph, indi_list, 100, 100, 3, init_weight_vectors_3d, crossover_operator, calculate_fitness)
+    run_moead(4, graph, indi_list, 100, 100, 10, init_weight_vectors_2d, crossover_operator, calculate_fitness)
  
 
 
