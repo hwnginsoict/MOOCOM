@@ -67,7 +67,7 @@ class NSGAIIPopulation(Population):
             return -1
 
     def natural_selection(self):
-        self.fast_nondominated_sort(self.indivs)
+        self.fast_nondominated_sort_crowding_distance(self.indivs)
         new_indivs = []
         new_fronts = []
         front_num = 0
