@@ -578,6 +578,6 @@ def calculate_fitness(problem, individual):
     total_distance, vehicle_fairness, customer_fairness = cost(problem, route)
     
     # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
-    individual.objectives = [total_distance, vehicle_fairness, customer_fairness]
+    individual.objectives = [total_distance/10000, vehicle_fairness/200, customer_fairness/20]
     
     return individual.objectives

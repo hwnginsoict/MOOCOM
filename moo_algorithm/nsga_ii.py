@@ -1,6 +1,8 @@
 import multiprocessing
 import sys
 import os
+from metric import cal_hv_front
+import numpy as np
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from population import Population, Individual
@@ -67,7 +69,7 @@ class NSGAIIPopulation(Population):
             return -1
 
     def natural_selection(self):
-        self.fast_nondominated_sort(self.indivs)
+        self.ParetoFront = self.fast_nondominated_sort_crowding_distance(self.indivs)
         new_indivs = []
         new_fronts = []
         front_num = 0
@@ -79,8 +81,9 @@ class NSGAIIPopulation(Population):
             front_num += 1
         self.calculate_crowding_distance(self.ParetoFront[front_num])
         self.ParetoFront[front_num].sort(key=lambda individual: individual.crowding_distance, reverse=True)
-        new_indivs.extend(self.ParetoFront[front_num][0:self.pop_size - len(new_indivs)])
-        new_fronts.append(self.ParetoFront[front_num][0:self.pop_size - len(new_indivs)])
+        number_remain = self.pop_size - len(new_indivs)
+        new_indivs.extend(self.ParetoFront[front_num][0:number_remain])
+        new_fronts.append(self.ParetoFront[front_num][0:number_remain])
         self.ParetoFront = new_fronts
         self.indivs = new_indivs
 
@@ -97,8 +100,10 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     result = pool.starmap(cal_fitness, arg)
     for individual, fitness in zip(nsga_ii_pop.indivs, result):
         individual.objectives = fitness
-    
+    history_hv = []
     nsga_ii_pop.natural_selection()
+    history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
+    print("Generation 0: ", history_hv[-1])
 
     for gen in range(max_gen):
         offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
@@ -110,12 +115,14 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
             individual.objectives = fitness
         nsga_ii_pop.indivs.extend(offspring)
         nsga_ii_pop.natural_selection()
+        history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
+        print("Generation {}: ".format(gen + 1), history_hv[-1])
     pool.close()
     return nsga_ii_pop.ParetoFront
     
 
 if __name__ == "__main__":
-    filepath = 'F:\\CodingEnvironment\\DPDPTW2F\\data\\dpdptw\\200\\LC1_2_1.csv'
+    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_nsga_ii(4, graph, indi_list, 100, 10, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+    run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
