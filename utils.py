@@ -56,6 +56,72 @@ def create_individual(graph):
     individual = Individual(keys)
     return individual
 
+def create_individual_pickup(graph):
+    """
+    Tạo ra một cá thể (chromosome) theo mã hóa LERK.
+    Returns:
+        individual (Individual): {
+            .chromosome: np.ndarray (leader keys + node pick up keys),
+            .objectives: list (rỗng, vì chưa tính fitness)
+        }
+    """
+    num_nodes = graph.num_nodes
+    num_pickup_nodes = len(graph.pickup_nodes)
+    vehicle_num = graph.vehicle_num
+
+    # Sinh leader keys (thường lớn hơn hẳn so với node keys, ví dụ [num_nodes, 300])
+    leader_keys = np.random.uniform(num_nodes, 300, vehicle_num)
+    
+    # Sinh node keys [0, 1)
+    # Ở đây ta bỏ qua node 0 (thường là depot) nên có num_nodes - 1 keys
+    node_keys = np.random.uniform(0, 1, num_pickup_nodes - 1)
+    
+    # Ghép leader_keys và node_keys
+    keys = np.concatenate((leader_keys, node_keys))
+
+    individual = Individual(keys)
+    return individual
+
+
+def repair_time(graph, solution):
+    """
+    Hàm sắp xếp thứ tự các điểm (node) trong mỗi route của 'solution' 
+    theo trường due_time (từ nhỏ đến lớn) trong graph.
+
+    Args:
+        graph: Đối tượng graph, trong đó graph.nodes[node_id].due_time 
+               trả về due_time của node_id.
+        solution: Danh sách các route, mỗi route là một list chứa 
+                  các chỉ số node (VD: [leader, n1, n2, ..., nK, leader, ...]).
+                  - Thông thường node >= graph.num_nodes có thể được coi là 
+                    "leader" hoặc "break" node tùy quy ước.
+
+    Returns:
+        new_solution: Bản sao của solution, với mỗi route được sắp xếp 
+                      lại các node < graph.num_nodes theo due_time tăng dần.
+    """
+    new_solution = []
+
+    for route in solution:
+        # Tách "leader" hoặc node >= graph.num_nodes (nếu có)
+        # và các node "thật" trong cùng route
+        
+        real_nodes_sorted = sorted(
+            route[1:], 
+            key=lambda x: graph.nodes[x].due_time
+        )
+
+        # Tuỳ thuộc vào logic của bạn:
+        # 1) Giữ nguyên leader ở đầu route và cuối route
+        # 2) Chèn leader xen kẽ
+        #
+        # Ở đây, ví dụ đơn giản: 
+        # - Đặt leader_nodes (nếu có) ở đầu route, rồi đến real_nodes_sorted
+        # - Nếu có nhiều "leader" node, bạn tự quyết định cách chèn phù hợp
+        new_route = route[:1] + real_nodes_sorted
+        new_solution.append(new_route)
+
+    return new_solution
 
 def repair_pickup_delivery(graph, solution):
     """
@@ -210,7 +276,7 @@ def cost_list(graph, route: list):
     ve_fair = []
     cus_fair = []
     time = 0
-    for i in range(1, len(route)):
+    for i in range(2, len(route)): #@check
         
         if route[i-1] >= graph.num_nodes and route[i] >= graph.num_nodes:
             ve_fair.append(0)
@@ -248,8 +314,6 @@ def cost_list(graph, route: list):
     total_distance = sum(ve_fair)
     customer_fairness = variance(cus_fair)
 
-    # print(len(ve_fair))
-    # print(len(cus_fair))
     return total_distance, vehicle_fairness, customer_fairness
 
 
@@ -277,12 +341,20 @@ def cost(graph, solution):
         time = 0.0
         
         # Giả sử route = [depot, ..., depot] => tính khoảng cách từng cặp liên tiếp
-        for i in range(len(route) - 1):
+        for i in range(1,len(route) - 1):
             current_node = route[i]
             next_node = route[i+1]
+
+            if current_node == next_node:
+                raise Exception("Route has duplicate nodes: {}".format(route))
             
             # Cộng quãng đường giữa current_node -> next_node
             dist_ij = graph.dist[current_node][next_node]
+
+            if dist_ij > 100000000000:
+                print("graph size: ", graph.num_nodes)
+                raise Exception("Invalid distance: {} -> {}".format(current_node, next_node))
+
             route_distance += dist_ij
             
             # Tính thời gian di chuyển
@@ -310,8 +382,11 @@ def cost(graph, solution):
         ve_fair.append(route_distance)
         total_distance += route_distance
     
-    vehicle_fairness = variance(ve_fair)
-    customer_fairness = variance(cus_fair)
+    # vehicle_fairness = variance(ve_fair)
+    # customer_fairness = variance(cus_fair)
+
+    vehicle_fairness = standard_deviation(ve_fair)
+    customer_fairness = standard_deviation(cus_fair)
     
     return total_distance, vehicle_fairness, customer_fairness
 
@@ -320,6 +395,9 @@ def variance(list):
     mean = sum(list) / len(list)
     variance = sum((x - mean) ** 2 for x in list) / len(list)
     return variance
+
+def standard_deviation(list):
+    return np.sqrt(variance(list))
 
 
 def decode_solution(problem, keys):
@@ -361,6 +439,89 @@ def decode_solution(problem, keys):
     # Ở đây, ta có thể gọi hàm repairPickupDelivery để đảm bảo ràng buộc (nếu cần)
     solution = repair_pickup_delivery(problem, solution)
     
+    return solution
+
+
+def decode_solution_pickup(problem, keys):
+    """
+    Giải mã từ LERK -> danh sách các route, với yêu cầu:
+      - Chỉ lấy các pickup node trong problem.pickup_nodes (mỗi phần tử là một đối tượng Node).
+      - Sau khi xếp pickup node, thêm delivery node tương ứng ngay sau pickup node đó.
+
+    Mỗi route có dạng: [leader_key, p1, d1, p2, d2, ...].
+
+    Args:
+        problem: đối tượng chứa thông tin, trong đó:
+           - problem.vehicle_num: số lượng xe (vehicle)
+           - problem.pickup_nodes: danh sách các đối tượng Node (mỗi Node có p.nid)
+           - problem.graph.nodes[node_id].did: delivery node ứng với pickup node_id
+        keys: mảng random-keys. 
+              - keys[:vehicle_num] là leader_keys
+              - keys[vehicle_num:] là node_keys để sắp xếp pickup nodes
+
+    Returns:
+        solution: list các route, mỗi route là một list **chỉ số node** (int).
+    """
+
+    vehicle_num = problem.vehicle_num
+
+    # Danh sách pickup node (mỗi phần tử là object Node, p.nid là chỉ số node)
+    pickup_nodes = problem.pickup_nodes
+    num_pickup_nodes = len(pickup_nodes)
+
+    # 1) Tách leader_keys và node_keys
+    leader_keys = keys[:vehicle_num]
+    node_keys = keys[vehicle_num:]
+
+    # 2) Ghép pickup_nodes với node_keys để sắp xếp
+    #    -> [(nodeObj, key), (nodeObj, key), ...]
+    pickup_key_pairs = list(zip(pickup_nodes, node_keys))
+
+    # 3) Sắp xếp theo node_key để được thứ tự pickup
+    #    -> danh sách nodeObj đã xếp
+    pickup_key_pairs.sort(key=lambda x: x[1])
+    sorted_pickups = [p for (p, _) in pickup_key_pairs]
+
+    # 4) Chuẩn bị solution rỗng: mỗi phần tử solution[i] là route thứ i
+    solution = [[] for _ in range(vehicle_num)]
+
+    # 5) Sắp xếp leader_keys để xác định thứ tự gán route
+    sorted_leader_indices = np.argsort(leader_keys)
+
+    # 6) Gán pickup (và delivery) vào route theo naive_capacity
+    naive_capacity = num_pickup_nodes // vehicle_num
+    idx_pickup = 0
+
+    # print("Leader indices: ", sorted_leader_indices)
+
+    # Mỗi route: [leader_key, ...pickup + delivery...]
+    for i, leader_idx in enumerate(sorted_leader_indices):
+        # Thêm leader (dùng int(leader_idx) như trong logic LERK truyền thống)
+        solution[i].append(int(leader_idx))
+        
+        # Lấy một “mẻ” pickup theo capacity
+        assigned_pickups = sorted_pickups[idx_pickup : idx_pickup + naive_capacity]
+        idx_pickup += naive_capacity
+
+        # Gắn pickup & delivery tương ứng vào route
+        for p in assigned_pickups:
+            p_id = p.nid  # Chỉ số node của pickup
+            d_id = problem.nodes[p_id].did  # Chỉ số node của delivery
+            solution[i].append(p_id)
+            solution[i].append(d_id)
+
+    # 7) Nếu còn pickup dư, ta gán vòng tròn vào các route
+    leftover_pickups = sorted_pickups[idx_pickup:]
+    for j, p in enumerate(leftover_pickups):
+        route_idx = j % vehicle_num
+        p_id = p.nid
+        d_id = problem.nodes[p_id].did
+        solution[route_idx].append(p_id)
+        solution[route_idx].append(d_id)
+
+    # (Nếu bạn có hàm repair_time, gọi ở đây để sắp xếp thêm theo due_time hoặc logic khác)
+    solution = repair_time(problem, solution)
+
     return solution
 
 
@@ -411,7 +572,7 @@ def calculate_fitness(problem, individual):
     """
     # 1) Giải mã từ random keys -> route (dạng một list duy nhất 
     #    có chèn sentinel >= problem.graph.num_nodes để đánh dấu chia tuyến)
-    route = decode_solution(problem, individual.chromosome)
+    route = decode_solution_pickup(problem, individual.chromosome)
     
     # 2) Tính cost
     total_distance, vehicle_fairness, customer_fairness = cost(problem, route)

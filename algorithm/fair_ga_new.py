@@ -90,7 +90,7 @@ def FairGA(graph,
     # (1) Khởi tạo quần thể S
     # population = [create_solution(graph) for _ in range(population_size)]
     population = Population(population_size)
-    population.indivs = [create_individual(graph) for _ in range(population_size)]
+    population.indivs = [create_individual_pickup(graph) for _ in range(population_size)]
     
     # Đánh giá fitness ban đầu
     for indiv in population.indivs:
@@ -106,6 +106,10 @@ def FairGA(graph,
         # Cập nhật Sbest (cá thể tốt nhất hiện tại)
         # Giả sử tiêu chí chính: objective[0] = tổng quãng đường => min
         current_best = population.indivs[0]  # sau sort ascending
+
+        # print(decode_solution_pickup(graph, current_best.chromosome))
+        # raise Exception
+    
         print(f"Iteration {iteration}, {current_best.objectives[0]}, {current_best.objectives[1]}, {current_best.objectives[2]}")
         if Sbest is None or current_best.objectives[0] < Sbest.objectives[0]:
             Sbest = copy.deepcopy(current_best)
@@ -172,7 +176,7 @@ def FairGA(graph,
         # (23) Mutate(mutateRate, S)
         # new_population còn thiếu => ta bổ sung cho đủ population_size
         while len(new_population.indivs) < population_size:
-            new_population.indivs.append(create_individual(graph))
+            new_population.indivs.append(create_individual_pickup(graph))
 
         # Đột biến trên new_population (trừ elites nếu bạn muốn)
         for idx in range(num_elites, len(new_population.indivs)):

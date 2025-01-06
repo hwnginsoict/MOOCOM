@@ -31,6 +31,8 @@ class Graph:
             for item in node_list
         ]
 
+        pickup_nodes = [node for node in nodes if node.pid == 0 and node.did != 0]
+
         # Khởi tạo ma trận khoảng cách NxN
         dist = np.zeros((num_nodes, num_nodes))
         for i in range(num_nodes):
@@ -45,6 +47,9 @@ class Graph:
         vehicle_cap = nodes[0].service_time
         vehicle_speed = nodes[0].time
 
+        self.pickup_nodes = pickup_nodes
+    
+        self.num_pickup_nodes = len(pickup_nodes)
         self.num_nodes = num_nodes
         self.nodes = nodes
         self.dist = dist
@@ -66,9 +71,9 @@ class Graph:
         Tính khoảng cách Euclidean giữa node_a và node_b.
         Trả về float('inf') nếu khoảng cách = 0 (tránh chia 0?).
         """
-        dis = np.linalg.norm((node_a.x - node_b.x, node_a.y - node_b.y))
-        if dis == 0:
+        if node_a.nid == node_b.nid:
             return float('inf')
+        dis = np.linalg.norm((node_a.x - node_b.x, node_a.y - node_b.y))
         return dis
 
 

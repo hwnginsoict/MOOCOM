@@ -1,5 +1,6 @@
-from population import Population, Individual
+from DPDPTW2F.population import Population, Individual
 import multiprocessing
+
 
 class NSGAIIPopulation(Population):
     def __init__(self, pop_size):
@@ -107,3 +108,14 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     pool.close()
     return nsga_ii_pop.ParetoFront
     
+import sys
+import os
+# Add the parent directory to the module search path
+sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+from utils import crossover_operator, mutation_operator, calculate_fitness
+from graph.graph import Graph
+
+if __name__ == "__main__":
+    filepath = 'F:\\CodingEnvironment\\DPDPTW2F\\data\\dpdptw\\200\\LC1_2_1.csv'
+    graph = Graph(filepath)
+    run_nsga_ii(4, graph, anh_duc_bip, 10, 10, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
