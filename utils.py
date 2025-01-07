@@ -167,38 +167,6 @@ def repair_pickup_delivery(graph, solution):
     return solution
 
 
-def crossover_operator_old(graph, parent1, parent2):
-    """
-    Thực hiện lai ghép (crossover) giữa 2 cá thể cha/mẹ (parent1, parent2)
-    Trả về 2 cá thể con (child1, child2) không tính fitness.
-    """
-    p1_keys = parent1["keys"]
-    p2_keys = parent2["keys"]
-    length = len(p1_keys)
-    
-    # Uniform crossover
-    mask = np.random.randint(0, 2, length)
-    c1_keys = np.where(mask, p1_keys, p2_keys)
-    c2_keys = np.where(mask, p2_keys, p1_keys)
-
-    # Tạo 2 cá thể con
-    child1 = {
-        "keys": c1_keys,
-        "objectives": []
-    }
-    child2 = {
-        "keys": c2_keys,
-        "objectives": []
-    }
-
-    # Nếu cần ràng buộc Pickup & Delivery, ta có thể gọi hàm repair ở đây
-
-    # child1 = repair_pickup_delivery(graph, child1)
-    # child2 = repair_pickup_delivery(graph, child2)
-
-    return child1, child2
-
-
 def crossover_operator(graph, parent1, parent2):
     """
     Thực hiện lai ghép (crossover) giữa 2 cá thể cha/mẹ (parent1, parent2)
@@ -223,32 +191,6 @@ def crossover_operator(graph, parent1, parent2):
 
     return child1, child2
 
-
-def mutation_operator_old(graph, individual, mutation_rate=0.1):
-    """
-    Đột biến (mutation) lên 1 cá thể, trả về 1 cá thể con.
-    """
-    keys = individual["keys"].copy()
-    
-    for i in range(len(keys)):
-        if random.random() < mutation_rate:
-            # Gaussian noise
-            keys[i] += np.random.normal(0, 0.1)
-    
-    # Không cho keys âm
-    keys = np.clip(keys, 0, None)
-    
-    offspring = {
-        "keys": keys,
-        "objectives": []
-    }
-
-    # Nếu cần ràng buộc Pickup & Delivery, có thể gọi repair ở đây
-    offspring = repair_pickup_delivery(graph, offspring)
-
-    return offspring
-
-
 def mutation_operator(graph, individual, mutation_rate=0.1):
     """
     Đột biến (mutation) lên 1 cá thể, trả về 1 cá thể con.
@@ -271,50 +213,50 @@ def mutation_operator(graph, individual, mutation_rate=0.1):
     return offspring
 
 
-def cost_list(graph, route: list):
-    distance = 0
-    ve_fair = []
-    cus_fair = []
-    time = 0
-    for i in range(2, len(route)): #@check
+# def cost_list(graph, route: list):
+#     distance = 0
+#     ve_fair = []
+#     cus_fair = []
+#     time = 0
+#     for i in range(2, len(route)): #@check
         
-        if route[i-1] >= graph.num_nodes and route[i] >= graph.num_nodes:
-            ve_fair.append(0)
-            distance = 0 
-            time = 0
-            continue
-        elif route[i-1] >= graph.num_nodes:
-            distance = 0
-            time = 0
-            distance += graph.dist[0][route[i]]
-            time += graph.dist[0][route[i]] / graph.vehicle_speed
-        elif route[i] >= graph.num_nodes:
-            distance += graph.dist[route[i-1]][0]
-            time += graph.dist[route[i-1]][0] / graph.vehicle_speed
-            ve_fair.append(distance)
-            distance = 0
-            time = 0
-            continue
-        else:
-            distance += graph.dist[route[i-1]][route[i]]
-            time += graph.dist[route[i-1]][route[i]] / graph.vehicle_speed
-        node = route[i]
-        customer = graph.nodes[node]
-        time = max(time, customer.ready_time)
-        time += 0 #service time, set to 0
-        if time > customer.due_time:
-            cus_fair.append(time - customer.due_time)
-        else:
-            cus_fair.append(0)
+#         if route[i-1] >= graph.num_nodes and route[i] >= graph.num_nodes:
+#             ve_fair.append(0)
+#             distance = 0 
+#             time = 0
+#             continue
+#         elif route[i-1] >= graph.num_nodes:
+#             distance = 0
+#             time = 0
+#             distance += graph.dist[0][route[i]]
+#             time += graph.dist[0][route[i]] / graph.vehicle_speed
+#         elif route[i] >= graph.num_nodes:
+#             distance += graph.dist[route[i-1]][0]
+#             time += graph.dist[route[i-1]][0] / graph.vehicle_speed
+#             ve_fair.append(distance)
+#             distance = 0
+#             time = 0
+#             continue
+#         else:
+#             distance += graph.dist[route[i-1]][route[i]]
+#             time += graph.dist[route[i-1]][route[i]] / graph.vehicle_speed
+#         node = route[i]
+#         customer = graph.nodes[node]
+#         time = max(time, customer.ready_time)
+#         time += 0 #service time, set to 0
+#         if time > customer.due_time:
+#             cus_fair.append(time - customer.due_time)
+#         else:
+#             cus_fair.append(0)
     
-    distance += graph.dist[route[-1]][0]
-    ve_fair.append(distance)
+#     distance += graph.dist[route[-1]][0]
+#     ve_fair.append(distance)
 
-    vehicle_fairness = variance(ve_fair)
-    total_distance = sum(ve_fair)
-    customer_fairness = variance(cus_fair)
+#     vehicle_fairness = variance(ve_fair)
+#     total_distance = sum(ve_fair)
+#     customer_fairness = variance(cus_fair)
 
-    return total_distance, vehicle_fairness, customer_fairness
+#     return total_distance, vehicle_fairness, customer_fairness
 
 
 def cost(graph, solution):
@@ -341,7 +283,7 @@ def cost(graph, solution):
         time = 0.0
         
         # Giả sử route = [depot, ..., depot] => tính khoảng cách từng cặp liên tiếp
-        for i in range(1,len(route) - 1):
+        for i in range(1,len(route) - 1): #skip first leader node
             current_node = route[i]
             next_node = route[i+1]
 
@@ -525,35 +467,35 @@ def decode_solution_pickup(problem, keys):
     return solution
 
 
-def cal_fitness(problem, individual):
-    """
-    Tính toán fitness (đa mục tiêu) cho một cá thể (individual).
-    Ở đây, ta sử dụng hàm cost(route) trả về:
-        total_distance, vehicle_fairness, customer_fairness
-    Lưu các giá trị đó thành list và gán vào individual["objectives"].
+# def cal_fitness(problem, individual):
+#     """
+#     Tính toán fitness (đa mục tiêu) cho một cá thể (individual).
+#     Ở đây, ta sử dụng hàm cost(route) trả về:
+#         total_distance, vehicle_fairness, customer_fairness
+#     Lưu các giá trị đó thành list và gán vào individual["objectives"].
     
-    Args:
-        problem: đối tượng chứa thông tin bài toán (trong đó có .cost(route)).
-        individual (dict): 
-            {
-                "keys": np.ndarray (mãng LERK),
-                "objectives": list rỗng hoặc đã tính
-            }
+#     Args:
+#         problem: đối tượng chứa thông tin bài toán (trong đó có .cost(route)).
+#         individual (dict): 
+#             {
+#                 "keys": np.ndarray (mãng LERK),
+#                 "objectives": list rỗng hoặc đã tính
+#             }
 
-    Returns:
-        list: [total_distance, vehicle_fairness, customer_fairness]
-    """
-    # 1) Giải mã từ random keys -> route (dạng một list duy nhất 
-    #    có chèn sentinel >= problem.graph.num_nodes để đánh dấu chia tuyến)
-    route = decode_solution(problem, individual["keys"])
+#     Returns:
+#         list: [total_distance, vehicle_fairness, customer_fairness]
+#     """
+#     # 1) Giải mã từ random keys -> route (dạng một list duy nhất 
+#     #    có chèn sentinel >= problem.graph.num_nodes để đánh dấu chia tuyến)
+#     route = decode_solution(problem, individual["keys"])
     
-    # 2) Tính cost
-    total_distance, vehicle_fairness, customer_fairness = cost(problem, route)
+#     # 2) Tính cost
+#     total_distance, vehicle_fairness, customer_fairness = cost(problem, route)
     
-    # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
-    individual["objectives"] = [total_distance, vehicle_fairness, customer_fairness]
+#     # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
+#     individual["objectives"] = [total_distance, vehicle_fairness, customer_fairness]
     
-    return individual["objectives"]
+#     return individual["objectives"]
 
 
 def calculate_fitness(problem, individual):
