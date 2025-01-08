@@ -110,6 +110,15 @@ class MOEADPopulation(Population):
                     break
             # else:
             self.external_pop.append(indi)
+
+    def filter_external(self):
+        objectives = set()
+        new_external_pop = []
+        for indi in self.external_pop:
+            if tuple(indi.objectives) not in objectives:
+                new_external_pop.append(indi)
+                objectives.add(tuple(indi.objectives))
+        self.external_pop = new_external_pop
     
     # def update_weights(self, problem, indivs: list):
     #     for i in range(self.pop_size):
@@ -149,11 +158,15 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
             individual.objectives = fitness
             moead_pop.update_z_star(individual)
         moead_pop.update_external(offspring)
+        moead_pop.filter_external()
         moead_pop.indivs.extend(offspring)
         # moead_pop.update_weights(problem, offspring)
         print("Generation {}: ".format(gen + 1), cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+        # print("Generation {}: ".format(gen + 1))
         moead_pop.natural_selection()
     pool.close()
+
+    print("Last:",  cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
     for i in moead_pop.external_pop:
         print(i.objectives)

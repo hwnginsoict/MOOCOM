@@ -162,7 +162,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         individual.objectives = fitness
     
     moead_pop.update_external(moead_pop.indivs)
-    # moead_pop.filter_external()
+    moead_pop.filter_external()
     # moead_pop.update_weights(problem, moead_pop.indivs)
     print("Generation 0: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
@@ -175,7 +175,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         for individual, fitness in zip(offspring, result):
             individual.objectives = fitness
         moead_pop.update_external(offspring)
-        # moead_pop.filter_external()
+        moead_pop.filter_external()
         moead_pop.indivs.extend(offspring)
         # moead_pop.update_weights(problem, offspring)
         print("Generation {}: ".format(gen + 1), cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
@@ -184,14 +184,16 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
 
     for i in moead_pop.external_pop:
         print(i.objectives)
+
+    print("Final:" , cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
     return moead_pop.external_pop
 
 
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(1000)]
-    run_moead(4, graph, indi_list, 1000, 100, 10, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
+    indi_list = [create_individual_pickup(graph) for _ in range(100)]
+    run_moead(4, graph, indi_list, 100, 100, 10, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
 
     # print(init_weight_vectors_3d(100))
     # print(init_weight_vectors_3d_plus(100))
