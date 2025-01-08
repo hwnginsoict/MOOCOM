@@ -49,6 +49,7 @@ class MOEADPopulation(Population):
         self.external_pop = []
         self.weights = init_weight_vectors(self.pop_size)
         self.neighborhoods = self.init_neighborhood()
+        self.objectives_tuple = set()
 
     def init_neighborhood(self):
         B = np.empty([self.pop_size, self.neighborhood_size], dtype=int)
@@ -60,11 +61,13 @@ class MOEADPopulation(Population):
             B[i] = np.argsort(euclidean_distances)[:self.neighborhood_size]
         return B
 
-    def reproduction(self, problem, crossover_operator):
+    def reproduction(self, problem, crossover_operator, mutation_operator):
         offspring = []
         for i in range(self.pop_size):
             parent1, parent2 = np.random.choice(self.neighborhoods[i].tolist(), 2, replace=False)
             off1, off2 = crossover_operator(problem, self.indivs[parent1], self.indivs[parent2])
+            if np.random.rand() < 0.15:
+                off1 = mutation_operator(problem, off1)
             offspring.append(off1)
         return offspring
     
@@ -115,11 +118,22 @@ class MOEADPopulation(Population):
             
             # Debug: Check for duplicate chromosomes
 
-            chromosomes = [tuple(ind.chromosome) for ind in self.external_pop]
-            if len(chromosomes) != len(set(chromosomes)):
-                print("Duplicate chromosome detected in external population!")
-                print("Chromosome:", indi.chromosome)
-                raise ValueError("Duplicate chromosome detected in external population!")
+            # chromosomes = [tuple(ind.chromosome) for ind in self.external_pop]
+            # if len(chromosomes) != len(set(chromosomes)):
+            #     print("Duplicate chromosome detected in external population!")
+            #     print("Chromosome:", indi.chromosome)
+            #     raise ValueError("Duplicate chromosome detected in external population!")
+    
+    def filter_external(self):
+        objectives = set()
+        new_external_pop = []
+        for indi in self.external_pop:
+            if tuple(indi.objectives) not in objectives:
+                new_external_pop.append(indi)
+                objectives.add(tuple(indi.objectives))
+        self.external_pop = new_external_pop
+
+
     
     # def update_weights(self, problem, indivs: list):
     #     for i in range(self.pop_size):
@@ -132,7 +146,7 @@ class MOEADPopulation(Population):
 
 
 def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighborhood_size, 
-              init_weight_vectors, crossover_operator, cal_fitness):
+              init_weight_vectors, crossover_operator, mutation_operator, cal_fitness):
     moead_pop = MOEADPopulation(pop_size, neighborhood_size, init_weight_vectors)
     moead_pop.pre_indi_gen(indi_list)
 
@@ -145,11 +159,12 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         individual.objectives = fitness
     
     moead_pop.update_external(moead_pop.indivs)
+    moead_pop.filter_external()
     # moead_pop.update_weights(problem, moead_pop.indivs)
     print("Generation 0: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
     for gen in range(max_gen):
-        offspring = moead_pop.reproduction(problem, crossover_operator)
+        offspring = moead_pop.reproduction(problem, crossover_operator, mutation_operator)
         arg = []
         for individual in offspring:
             arg.append((problem, individual))
@@ -157,6 +172,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         for individual, fitness in zip(offspring, result):
             individual.objectives = fitness
         moead_pop.update_external(offspring)
+        moead_pop.filter_external()
         moead_pop.indivs.extend(offspring)
         # moead_pop.update_weights(problem, offspring)
         print("Generation {}: ".format(gen + 1), cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
@@ -172,7 +188,7 @@ if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_moead(4, graph, indi_list, 100, 50, 3, init_weight_vectors_3d_plus, crossover_operator, calculate_fitness)
+    run_moead(4, graph, indi_list, 100, 50, 3, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
 
     # print(init_weight_vectors_3d(100))
     # print(init_weight_vectors_3d_plus(100))
