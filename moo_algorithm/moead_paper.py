@@ -23,15 +23,6 @@ def init_weight_vectors_3d(pop_size):
                 wvs.append([i, j, 1 - i - j])
     return np.array(wvs)
 
-def init_weight_vectors_3d_plus(pop_size):
-    step = 1 / (pop_size - 1)
-    wvs = [
-        [i, j, 1 - i - j]
-        for i in np.arange(0, 1 + step, step)
-        for j in np.arange(0, 1 - i + step, step)  # Ensures i + j <= 1
-    ]
-    return np.array(wvs)
-
 def init_weight_vectors_4d(pop_size):
     wvs = []
     for i in np.arange(0, 1 + sys.float_info.epsilon, 1 / (pop_size - 1)):
@@ -42,6 +33,10 @@ def init_weight_vectors_4d(pop_size):
     return np.array(wvs)
 
 
+def g_te(indi: Individual, wv_j, z_star):
+    return max([wv_j[i]*np.abs(indi.objectives[i] - z_star[i]) for i in range(len(wv_j))])
+
+
 class MOEADPopulation(Population):
     def __init__(self, pop_size,  neighborhood_size, init_weight_vectors):
         super().__init__(pop_size)
@@ -49,7 +44,7 @@ class MOEADPopulation(Population):
         self.external_pop = []
         self.weights = init_weight_vectors(self.pop_size)
         self.neighborhoods = self.init_neighborhood()
-        self.objectives_tuple = set()
+        self.z_star = None
 
     def init_neighborhood(self):
         B = np.empty([self.pop_size, self.neighborhood_size], dtype=int)
@@ -60,83 +55,61 @@ class MOEADPopulation(Population):
                 euclidean_distances[j] = np.linalg.norm(wv - self.weights[j])
             B[i] = np.argsort(euclidean_distances)[:self.neighborhood_size]
         return B
+    
+    def initialize_z_star(self):
+        self.z_star = [float('inf') for _ in range(len(self.indivs[0].objectives))]
+        for i in range(len(self.z_star)):
+            temp_i = min([indiv.objectives[i] for indiv in self.indivs])
+            self.z_star[i] = min(self.z_star[i], temp_i)
 
-    def reproduction(self, problem, crossover_operator, mutation_operator):
+
+    def update_z_star(self, individual: Individual):
+        for i in range(len(self.z_star)):
+            self.z_star[i] = min(self.z_star[i], individual.objectives[i])
+
+    def reproduction(self, problem, crossover_operator, mutation_operator, mutation_rate):
         offspring = []
         for i in range(self.pop_size):
             parent1, parent2 = np.random.choice(self.neighborhoods[i].tolist(), 2, replace=False)
             off1, off2 = crossover_operator(problem, self.indivs[parent1], self.indivs[parent2])
-            if np.random.rand() < 0.15:
+            if np.random.rand() < mutation_rate:
                 off1 = mutation_operator(problem, off1)
             offspring.append(off1)
         return offspring
     
-    def mutation(self, problem, mutation_operator):
-        for i in range(self.pop_size):
-            if np.random.rand() < 0.1:
-                self.indivs[i] = mutation_operator(problem, self.indivs[i])
-    
 
+    # def natural_selection(self):
+    #     self.indivs, O = self.indivs[:self.pop_size], self.indivs[self.pop_size:]
+    #     for i in range(self.pop_size):
+    #         indi = O[i]
+    #         wv = self.weights[i]
+    #         value_indi = np.sum(wv * indi.objectives)
+    #         for j in self.neighborhoods[i]:
+    #             if value_indi < np.sum(wv * self.indivs[j].objectives):
+    #                 self.indivs[j] = indi
     def natural_selection(self):
         self.indivs, O = self.indivs[:self.pop_size], self.indivs[self.pop_size:]
         for i in range(self.pop_size):
             indi = O[i]
             wv = self.weights[i]
-            value_indi = np.sum(wv * indi.objectives)
+            value_g_te = g_te(indi, wv, self.z_star)
             for j in self.neighborhoods[i]:
-                if value_indi < np.sum(wv * self.indivs[j].objectives):
+                if value_g_te < g_te(self.indivs[j], wv, self.z_star):
                     self.indivs[j] = indi
-
-    # def update_external(self, indivs: list):
-    #     for indi in indivs:
-    #         old_size = len(self.external_pop)
-    #         self.external_pop = [other for other in self.external_pop
-    #                              if not indi.dominates(other)]
-    #         if old_size > len(self.external_pop):
-    #             self.external_pop.append(indi)
-    #             continue
-    #         for other in self.external_pop:
-    #             if other.dominates(indi):
-    #                 break
-    #         else:
-    #             self.external_pop.append(indi)
-
 
     def update_external(self, indivs: list):
         for indi in indivs:
-            if tuple(indi.objectives) in self.objectives_tuple:
-                continue
-            # old_size = len(self.external_pop)
+            old_size = len(self.external_pop)
             self.external_pop = [other for other in self.external_pop
-                                if not indi.dominates(other)]
+                                 if not indi.dominates(other)]
             # if old_size > len(self.external_pop):
             #     self.external_pop.append(indi)
             #     continue
             for other in self.external_pop:
                 if other.dominates(indi):
                     break
-            else:
-                self.external_pop.append(indi)
-                self.objectives_tuple.add(tuple(indi.objectives))
-            
-            # Debug: Check for duplicate chromosomes
-
-            # chromosomes = [tuple(ind.chromosome) for ind in self.external_pop]
-            # if len(chromosomes) != len(set(chromosomes)):
-            #     print("Duplicate chromosome detected in external population!")
-            #     print("Chromosome:", indi.chromosome)
-            #     raise ValueError("Duplicate chromosome detected in external population!")
-    
-    def filter_external(self):
-        objectives = set()
-        new_external_pop = []
-        for indi in self.external_pop:
-            if tuple(indi.objectives) not in objectives:
-                new_external_pop.append(indi)
-                objectives.add(tuple(indi.objectives))
-        self.external_pop = new_external_pop
-
-
+            # else:
+            self.external_pop.append(indi)
     
     # def update_weights(self, problem, indivs: list):
     #     for i in range(self.pop_size):
@@ -149,7 +122,7 @@ class MOEADPopulation(Population):
 
 
 def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighborhood_size, 
-              init_weight_vectors, crossover_operator, mutation_operator, cal_fitness):
+              init_weight_vectors, crossover_operator, mutation_operator, mutation_rate, cal_fitness):
     moead_pop = MOEADPopulation(pop_size, neighborhood_size, init_weight_vectors)
     moead_pop.pre_indi_gen(indi_list)
 
@@ -161,21 +134,21 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     for individual, fitness in zip(moead_pop.indivs, result):
         individual.objectives = fitness
     
+    moead_pop.initialize_z_star()
     moead_pop.update_external(moead_pop.indivs)
-    # moead_pop.filter_external()
     # moead_pop.update_weights(problem, moead_pop.indivs)
     print("Generation 0: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
     for gen in range(max_gen):
-        offspring = moead_pop.reproduction(problem, crossover_operator, mutation_operator)
+        offspring = moead_pop.reproduction(problem, crossover_operator, mutation_operator, mutation_rate)
         arg = []
         for individual in offspring:
             arg.append((problem, individual))
         result = pool.starmap(cal_fitness, arg)
         for individual, fitness in zip(offspring, result):
             individual.objectives = fitness
+            moead_pop.update_z_star(individual)
         moead_pop.update_external(offspring)
-        # moead_pop.filter_external()
         moead_pop.indivs.extend(offspring)
         # moead_pop.update_weights(problem, offspring)
         print("Generation {}: ".format(gen + 1), cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
@@ -191,7 +164,6 @@ if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(1000)]
-    run_moead(4, graph, indi_list, 1000, 100, 10, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
-
-    # print(init_weight_vectors_3d(100))
-    # print(init_weight_vectors_3d_plus(100))
+    run_moead(4, graph, indi_list, 1000, 50, 10, init_weight_vectors_3d, crossover_operator, mutation_operator, 
+              0.1, calculate_fitness)
+ 

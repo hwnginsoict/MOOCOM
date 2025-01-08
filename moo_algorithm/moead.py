@@ -51,18 +51,20 @@ class MOEADPopulation(Population):
             B[i] = np.argsort(euclidean_distances)[:self.neighborhood_size]
         return B
 
-    def reproduction(self, problem, crossover_operator):
+    def reproduction(self, problem, crossover_operator, mutation_operator, mutation_rate):
         offspring = []
         for i in range(self.pop_size):
             parent1, parent2 = np.random.choice(self.neighborhoods[i].tolist(), 2, replace=False)
             off1, off2 = crossover_operator(problem, self.indivs[parent1], self.indivs[parent2])
+            if np.random.rand() < mutation_rate:
+                off1 = mutation_operator(problem, off1)
             offspring.append(off1)
         return offspring
     
-    def mutation(self, problem, mutation_operator):
-        for i in range(self.pop_size):
-            if np.random.rand() < 0.1:
-                self.indivs[i] = mutation_operator(problem, self.indivs[i])
+    # def mutation(self, problem, mutation_operator):
+    #     for i in range(self.pop_size):
+    #         if np.random.rand() < 0.1:
+    #             self.indivs[i] = mutation_operator(problem, self.indivs[i])
     
 
     def natural_selection(self):
