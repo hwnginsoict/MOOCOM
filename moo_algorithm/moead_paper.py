@@ -1,10 +1,10 @@
 import multiprocessing
 import sys
 import os
-from metric import cal_hv_front
 import numpy as np
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
 from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
@@ -102,14 +102,14 @@ class MOEADPopulation(Population):
             old_size = len(self.external_pop)
             self.external_pop = [other for other in self.external_pop
                                  if not indi.dominates(other)]
-            # if old_size > len(self.external_pop):
-            #     self.external_pop.append(indi)
-            #     continue
+            if old_size > len(self.external_pop):
+                self.external_pop.append(indi)
+                continue
             for other in self.external_pop:
                 if other.dominates(indi):
                     break
-            # else:
-            self.external_pop.append(indi)
+            else:
+                self.external_pop.append(indi)
 
     def filter_external(self):
         objectives = set()
@@ -132,6 +132,7 @@ class MOEADPopulation(Population):
 
 def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighborhood_size, 
               init_weight_vectors, crossover_operator, mutation_operator, mutation_rate, cal_fitness):
+    np.random.seed(0)
     moead_pop = MOEADPopulation(pop_size, neighborhood_size, init_weight_vectors)
     moead_pop.pre_indi_gen(indi_list)
 
@@ -166,10 +167,13 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         moead_pop.natural_selection()
     pool.close()
 
-    print("Last:",  cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+    # print("Last:",  cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
-    for i in moead_pop.external_pop:
-        print(i.objectives)
+    # for i in moead_pop.external_pop:
+    #     print(i.objectives)
+
+
+    return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
     return moead_pop.external_pop
 
 

@@ -1,10 +1,10 @@
 import multiprocessing
 import sys
 import os
-from metric import cal_hv_front
 import numpy as np
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
 from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
@@ -90,6 +90,7 @@ class NSGAIIPopulation(Population):
 
 def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crossover_operator, mutation_operator, 
                 crossover_rate, mutation_rate, cal_fitness):
+    np.random.seed(0)
     nsga_ii_pop = NSGAIIPopulation(pop_size)
     nsga_ii_pop.pre_indi_gen(indi_list)
 
@@ -118,6 +119,8 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
         print("Generation {}: ".format(gen + 1), history_hv[-1])
     pool.close()
+
+    return history_hv[-1]
     return nsga_ii_pop.ParetoFront
     
 

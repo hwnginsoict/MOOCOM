@@ -1,10 +1,10 @@
 import multiprocessing
 import sys
 import os
-from metric import cal_hv_front
 import numpy as np
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
 from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
@@ -148,8 +148,9 @@ class MOEADPopulation(Population):
     #                 self.indivs[j] = self.indivs[i]
 
 
-def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighborhood_size, 
+def run_moead_plus(processing_number, problem, indi_list, pop_size, max_gen, neighborhood_size, 
               init_weight_vectors, crossover_operator, mutation_operator, cal_fitness):
+    np.random.seed(0)
     moead_pop = MOEADPopulation(pop_size, neighborhood_size, init_weight_vectors)
     moead_pop.pre_indi_gen(indi_list)
 
@@ -182,10 +183,12 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         moead_pop.natural_selection()
     pool.close()
 
-    for i in moead_pop.external_pop:
-        print(i.objectives)
+    # for i in moead_pop.external_pop:
+    #     print(i.objectives)
 
-    print("Final:" , cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+    # print("Final:" , cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+
+    return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
     return moead_pop.external_pop
 
 
@@ -193,7 +196,4 @@ if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_moead(4, graph, indi_list, 100, 100, 10, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
-
-    # print(init_weight_vectors_3d(100))
-    # print(init_weight_vectors_3d_plus(100))
+    run_moead_plus(4, graph, indi_list, 100, 100, 10, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
