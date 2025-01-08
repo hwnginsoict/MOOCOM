@@ -16,11 +16,12 @@ class Individual:
 
     # Dominate operator
     def dominates(self, other_individual):
+        tolerance=1e-3
         and_condition = True
-        or_condition = False    
+        or_condition = False
         for first, second in zip(self.objectives, other_individual.objectives):
-            and_condition = and_condition and (first <= second)
-            or_condition = or_condition or (first < second)
+            and_condition = and_condition and (first <= second + tolerance)
+            or_condition = or_condition or (first < second - tolerance)
         return and_condition and or_condition
     
     

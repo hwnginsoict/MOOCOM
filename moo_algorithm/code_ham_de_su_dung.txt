@@ -7,3 +7,6 @@ trong hàm làm gì tùy em, crossover + repair, ...
 3. mutation_operator(problem, individual) hàm này trả về 1 Individual con không cần tính fitness
 4. cal_fitness(problem, individual) hàm này tính fitness cho individual trả về objectives (đa mục tiêu)
 '''
+
+
+cluster

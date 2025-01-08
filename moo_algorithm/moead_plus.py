@@ -23,6 +23,15 @@ def init_weight_vectors_3d(pop_size):
                 wvs.append([i, j, 1 - i - j])
     return np.array(wvs)
 
+def init_weight_vectors_3d_plus(pop_size):
+    step = 1 / (pop_size - 1)
+    wvs = [
+        [i, j, 1 - i - j]
+        for i in np.arange(0, 1 + step, step)
+        for j in np.arange(0, 1 - i + step, step)  # Ensures i + j <= 1
+    ]
+    return np.array(wvs)
+
 def init_weight_vectors_4d(pop_size):
     wvs = []
     for i in np.arange(0, 1 + sys.float_info.epsilon, 1 / (pop_size - 1)):
@@ -75,19 +84,42 @@ class MOEADPopulation(Population):
                 if value_indi < np.sum(wv * self.indivs[j].objectives):
                     self.indivs[j] = indi
 
+    # def update_external(self, indivs: list):
+    #     for indi in indivs:
+    #         old_size = len(self.external_pop)
+    #         self.external_pop = [other for other in self.external_pop
+    #                              if not indi.dominates(other)]
+    #         if old_size > len(self.external_pop):
+    #             self.external_pop.append(indi)
+    #             continue
+    #         for other in self.external_pop:
+    #             if other.dominates(indi):
+    #                 break
+    #         else:
+    #             self.external_pop.append(indi)
+
+
     def update_external(self, indivs: list):
         for indi in indivs:
-            old_size = len(self.external_pop)
+            # old_size = len(self.external_pop)
             self.external_pop = [other for other in self.external_pop
-                                 if not indi.dominates(other)]
-            if old_size > len(self.external_pop):
-                self.external_pop.append(indi)
-                continue
+                                if not indi.dominates(other)]
+            # if old_size > len(self.external_pop):
+            #     self.external_pop.append(indi)
+            #     continue
             for other in self.external_pop:
                 if other.dominates(indi):
                     break
             else:
                 self.external_pop.append(indi)
+            
+            # Debug: Check for duplicate chromosomes
+
+            chromosomes = [tuple(ind.chromosome) for ind in self.external_pop]
+            if len(chromosomes) != len(set(chromosomes)):
+                print("Duplicate chromosome detected in external population!")
+                print("Chromosome:", indi.chromosome)
+                raise ValueError("Duplicate chromosome detected in external population!")
     
     # def update_weights(self, problem, indivs: list):
     #     for i in range(self.pop_size):
@@ -140,6 +172,7 @@ if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_moead(4, graph, indi_list, 100, 50, 3, init_weight_vectors_3d, crossover_operator, calculate_fitness)
- 
+    run_moead(4, graph, indi_list, 100, 50, 3, init_weight_vectors_3d_plus, crossover_operator, calculate_fitness)
 
+    # print(init_weight_vectors_3d(100))
+    # print(init_weight_vectors_3d_plus(100))
