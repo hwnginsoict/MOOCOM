@@ -187,8 +187,8 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_moead(4, graph, indi_list, 100, 50, 3, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
+    indi_list = [create_individual_pickup(graph) for _ in range(1000)]
+    run_moead(4, graph, indi_list, 1000, 100, 10, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
 
     # print(init_weight_vectors_3d(100))
     # print(init_weight_vectors_3d_plus(100))
