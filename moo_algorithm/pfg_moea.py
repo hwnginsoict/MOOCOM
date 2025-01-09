@@ -2,12 +2,11 @@ import numpy as np
 import random
 from copy import deepcopy
 import multiprocessing
-from metric import cal_hv_front
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-from population import Population, Individual
+from metric import cal_hv_front
+from population import Population
 from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
@@ -195,6 +194,9 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
         pop.natural_selection()
         print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
     pool.close()
+
+    for i in pop.ParetoFront[0]:
+        print(i.objectives)
     return pop.ParetoFront[0]
 
 if __name__ == "__main__":

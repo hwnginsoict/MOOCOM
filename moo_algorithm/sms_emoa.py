@@ -16,7 +16,7 @@ class SMSEMOAPopulation(Population):
 
     def hypervolume_contribution(self, individuals):
         contributions = []
-        for i, indi in enumerate(individuals):
+        for i in range(len(individuals)):
             remaining = individuals[:i] + individuals[i+1:]
             hv_total = cal_hv_front(individuals, self.reference_point)
             hv_without = cal_hv_front(remaining, self.reference_point)
