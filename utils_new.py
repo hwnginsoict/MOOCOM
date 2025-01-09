@@ -16,12 +16,12 @@ def create_individual_pickup(graph):
 
     num_nodes = graph.num_nodes
     pickup_nodes = graph.pickup_nodes
-    num_pickup_nodes = len(pickup_nodes)
+    # num_pickup_nodes = len(pickup_nodes)
     vehicle_num = graph.vehicle_num
 
     # 1) Sinh leader_keys kiểu integer cho các vehicle
     #    Ví dụ: random từ [num_nodes, 300)
-    leader_keys = np.random.randint(low=num_nodes, high=300, size=vehicle_num)
+    leader_keys = np.random.randint(low=num_nodes, high=num_nodes + vehicle_num + 10, size=vehicle_num)
 
     # 2) Sinh permutation cho các pickup node (bỏ qua depot = 0)
     #    Nếu graph.pickup_nodes = [0, 1, 2, 3, ...], ta chỉ hoán vị [1, 2, 3, ...]
@@ -349,7 +349,7 @@ def mutation_operator(graph, individual, mutation_rate=0.1):
         leader_keys, 
         mutation_rate, 
         min_val=graph.num_nodes, 
-        max_val=300
+        max_val=graph.num_nodes + vehicle_num + 10
     )
 
     # Đột biến permutation (ví dụ swap mutation)
