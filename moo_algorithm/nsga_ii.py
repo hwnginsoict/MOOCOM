@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
-from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 class NSGAIIPopulation(Population):

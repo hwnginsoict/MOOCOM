@@ -3,8 +3,22 @@ from .node import Node
 import csv
 
 class Graph:
-    def __init__(self, file_path):
+    def __init__(self, file_path, cd=0.7, xi=1, kappa=44, p=1.2, A=3.192, mk=3.2, g=9.81, cr=0.01, psi=737, pi=0.2, R=165, eta=0.36):
+        self.cd = cd
+        self.p = p
+        self.A = A 
+        self.mk = mk
+        self.g = g
+        self.cr = cr
+        self.xi = xi
+        self.kappa = kappa
+        self.psi = psi 
+        self.pi = pi
+        self.R = R 
+        self.eta = eta
+
         self.read_file(file_path)
+
 
     def read_file(self, file_path):
         node_list = []
@@ -47,6 +61,19 @@ class Graph:
         vehicle_cap = nodes[0].service_time
         vehicle_speed = nodes[0].time
 
+
+        T = 1/2 * self.cd * self.p * self.A + (self.mk + vehicle_cap) * self.g * self.cr
+        G = self.xi / (self.kappa * self.psi) * (self.pi * self.R + T / self.eta)
+        self.G = G
+
+        # print("G = ", G)
+
+        # engine_energy_consumption += G * graph.dist[current_ind][next_ind]
+
+        # dist = dist*G
+
+        # print(G)
+
         self.pickup_nodes = pickup_nodes
     
         self.num_pickup_nodes = len(pickup_nodes)
@@ -83,6 +110,7 @@ if __name__ == "__main__":
     print("vehicle_num =", graph.vehicle_num)
     print("vehicle_cap =", graph.vehicle_cap)
     print("vehicle_speed =", graph.vehicle_speed)
+    print(len(graph.pickup_nodes), "pickup nodes")
     
     # Kiểm tra requests
     # mỗi cặp p->d trong graph.requests
