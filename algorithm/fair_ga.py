@@ -20,7 +20,7 @@ def rank_population(graph, population, rank_type="total_distance"):
     # Tính fitness trước
     for indiv in population.indivs:
         if not indiv.objectives:  # nếu chưa có objectives
-            cal_fitness(graph, indiv)
+            calculate_fitness(graph, indiv)
     # Sort theo objective 0 (giả sử total_distance) - ascending
 
     if rank_type == "total_distance":

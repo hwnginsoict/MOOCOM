@@ -48,7 +48,7 @@ def create_individual(graph):
     
     # Sinh node keys [0, 1)
     # Ở đây ta bỏ qua node 0 (thường là depot) nên có num_nodes - 1 keys
-    node_keys = np.random.uniform(0, 1, num_nodes - 1)
+    node_keys = np.random.uniform(0, 1, num_nodes)
     
     # Ghép leader_keys và node_keys
     keys = np.concatenate((leader_keys, node_keys))
@@ -67,6 +67,7 @@ def create_individual_pickup(graph):
     """
     num_nodes = graph.num_nodes
     num_pickup_nodes = len(graph.pickup_nodes)
+    # print("num_pickup_nodes: ", num_pickup_nodes)
     vehicle_num = graph.vehicle_num
 
     # Sinh leader keys (thường lớn hơn hẳn so với node keys, ví dụ [num_nodes, 300])
@@ -74,7 +75,8 @@ def create_individual_pickup(graph):
     
     # Sinh node keys [0, 1)
     # Ở đây ta bỏ qua node 0 (thường là depot) nên có num_nodes - 1 keys
-    node_keys = np.random.uniform(0, 1, num_pickup_nodes - 1)
+    node_keys = np.random.uniform(0, 1, num_pickup_nodes)
+    # print(len(node_keys))
     
     # Ghép leader_keys và node_keys
     keys = np.concatenate((leader_keys, node_keys))

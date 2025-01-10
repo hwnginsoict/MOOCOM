@@ -173,8 +173,13 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     #     print(i.objectives)
 
 
-    return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
-    return moead_pop.external_pop
+    # return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
+    # return moead_pop.external_pop
+
+    list = []
+    for i in moead_pop.external_pop:
+        list.append(i.objectives)
+    return list
 
 
 if __name__ == "__main__":

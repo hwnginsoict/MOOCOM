@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
-from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 def init_weight_vectors_2d(pop_size):
@@ -188,8 +188,13 @@ def run_moead_plus(processing_number, problem, indi_list, pop_size, max_gen, nei
 
     # print("Final:" , cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
-    return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
-    return moead_pop.external_pop
+    # return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
+    # return moead_pop.external_pop
+
+    list = []
+    for i in moead_pop.external_pop:
+        list.append(i.objectives)
+    return list
 
 
 if __name__ == "__main__":

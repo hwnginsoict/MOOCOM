@@ -2,13 +2,12 @@ import numpy as np
 import random
 from copy import deepcopy
 import multiprocessing
-from metric import cal_hv_front
 import sys
 import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-from population import Population, Individual
-from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+from moo_algorithm.metric import cal_hv_front
+from population import Population
+from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 def cal_knee_point(pop):
@@ -195,10 +194,17 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
         pop.natural_selection()
         print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
     pool.close()
-    return pop.ParetoFront[0]
+
+    # return pop.ParetoFront[0]
+
+    result = []
+    for each in pop.ParetoFront[0]:
+        result.append(each.objectives)
+    return result
 
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+    # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
     run_pfgmoea(4, graph, indi_list, 100, 100, 100, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)

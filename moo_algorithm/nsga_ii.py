@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
-from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 class NSGAIIPopulation(Population):
@@ -120,8 +120,12 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         print("Generation {}: ".format(gen + 1), history_hv[-1])
     pool.close()
 
-    return history_hv[-1]
-    return nsga_ii_pop.ParetoFront
+    # return history_hv[-1]
+
+    result = []
+    for each in nsga_ii_pop.ParetoFront[0]:
+        result.append(each.objectives)
+    return result
     
 
 if __name__ == "__main__":
