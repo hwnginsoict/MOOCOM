@@ -165,6 +165,9 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
     pop.natural_selection()
     print("Generation 0: ", cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
 
+    history = {}
+    history[0] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
+
     for gen in range(max_gen):
         knee_point = cal_knee_point(pop)
         nadir_point = cal_nadir_point(pop)
@@ -193,14 +196,20 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
         pop.indivs.extend(offspring)
         pop.natural_selection()
         print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
+
+        history[gen + 1] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
+
     pool.close()
 
     # return pop.ParetoFront[0]
 
-    result = []
-    for each in pop.ParetoFront[0]:
-        result.append(each.objectives)
-    return result
+    # result = []
+    # for each in pop.ParetoFront[0]:
+    #     result.append(each.objectives)
+    # return result
+
+    # print(history)
+    return history
 
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'

@@ -137,12 +137,14 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     # for each in nsga_ii_pop.ParetoFront[0]:
     #     result.append(each.objectives)
     print("HV result: ", cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
+
+    # print(history)
     return history
     
 
-# if __name__ == "__main__":
-#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-#     graph = Graph(filepath)
-#     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-#     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+if __name__ == "__main__":
+    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+    graph = Graph(filepath)
+    indi_list = [create_individual_pickup(graph) for _ in range(100)]
+    Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
 

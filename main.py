@@ -105,41 +105,43 @@ if __name__ == "__main__":
     # -------------------------
     # 2) Run MOEA/D+
     # -------------------------
-    moead_plus_results = run_moead_plus(
-        4,
-        graph,
-        indi_list,
-        pop_size,
-        100,
-        25,  # neighborhood size
-        init_weight_vectors_3d,
-        crossover_operator,
-        mutation_operator,
-        calculate_fitness
-    )
-    # Immediately write/append MOEA/D+ results
-    append_results_to_json("moo_results.json", "MOEAD_PLUS", moead_plus_results)
-    print("MOEA/D+ results appended to moo_results.json")
+
+    # moead_plus_results = run_moead_plus(
+    #     4,
+    #     graph,
+    #     indi_list,
+    #     pop_size,
+    #     100,
+    #     25,  # neighborhood size
+    #     init_weight_vectors_3d,
+    #     crossover_operator,
+    #     mutation_operator,
+    #     calculate_fitness
+    # )
+    # # Immediately write/append MOEA/D+ results
+    # append_results_to_json("moo_results.json", "MOEAD_PLUS", moead_plus_results)
+    # print("MOEA/D+ results appended to moo_results.json")
 
 
     # -------------------------
     # 3) Run MOEA/D
     # -------------------------
-    moead_paper_results = run_moead(
-        4,
-        graph,
-        indi_list,
-        pop_size,
-        100,
-        25,
-        init_weight_vectors_3d,
-        crossover_operator,
-        mutation_operator,
-        0.1,  # F or alpha param
-        calculate_fitness
-    )
-    append_results_to_json("moo_results.json", "MOEAD_PAPER", moead_paper_results)
-    print("MOEA/D results appended to moo_results.json")
+    
+    # moead_paper_results = run_moead(
+    #     4,
+    #     graph,
+    #     indi_list,
+    #     pop_size,
+    #     100,
+    #     25,
+    #     init_weight_vectors_3d,
+    #     crossover_operator,
+    #     mutation_operator,
+    #     0.1,  # F or alpha param
+    #     calculate_fitness
+    # )
+    # append_results_to_json("moo_results.json", "MOEAD_PAPER", moead_paper_results)
+    # print("MOEA/D results appended to moo_results.json")
 
 
     # -------------------------
