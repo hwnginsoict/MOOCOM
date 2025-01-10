@@ -90,7 +90,7 @@ class NSGAIIPopulation(Population):
 
 def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crossover_operator, mutation_operator, 
                 crossover_rate, mutation_rate, cal_fitness):
-    np.random.seed(0)
+    history = {}
     nsga_ii_pop = NSGAIIPopulation(pop_size)
     nsga_ii_pop.pre_indi_gen(indi_list)
 
@@ -103,10 +103,17 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         individual.objectives = fitness
     history_hv = []
     nsga_ii_pop.natural_selection()
-    history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
-    print("Generation 0: ", history_hv[-1])
+    # history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
+    # print("Generation 0: ", history_hv[-1])
+    print("Generation 0: Done")
+    Pareto_store = []
+    for indi in nsga_ii_pop.ParetoFront[0]:
+        Pareto_store.append(list(indi.objectives))
+    history[0] = Pareto_store
+
 
     for gen in range(max_gen):
+        Pareto_store = []
         offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
         arg = []
         for individual in offspring:
@@ -116,20 +123,26 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
             individual.objectives = fitness
         nsga_ii_pop.indivs.extend(offspring)
         nsga_ii_pop.natural_selection()
-        history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
-        print("Generation {}: ".format(gen + 1), history_hv[-1])
+        # history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
+        # print("Generation {}: ".format(gen + 1), history_hv[-1])
+        print("Generation {}: Done".format(gen + 1))
+        for indi in nsga_ii_pop.ParetoFront[0]:
+            Pareto_store.append(list(indi.objectives))
+        history[gen + 1] = Pareto_store
     pool.close()
 
     # return history_hv[-1]
 
-    result = []
-    for each in nsga_ii_pop.ParetoFront[0]:
-        result.append(each.objectives)
-    return result
+    # result = []
+    # for each in nsga_ii_pop.ParetoFront[0]:
+    #     result.append(each.objectives)
+    print("HV result: ", cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
+    return history
     
 
-if __name__ == "__main__":
-    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-    graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+# if __name__ == "__main__":
+#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+#     graph = Graph(filepath)
+#     indi_list = [create_individual_pickup(graph) for _ in range(100)]
+#     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+
