@@ -37,10 +37,10 @@ class SMSEMOAPopulation(Population):
                 non_dominated.append(indi)
         self.external_pop = non_dominated
 
-def run_sms_emoa(problem, pop_size, max_gen, reference_point, crossover_operator, mutation_operator, cal_fitness):
+def run_sms_emoa(problem, pop_size, max_gen, indi_list, reference_point, crossover_operator, mutation_operator, cal_fitness):
     np.random.seed(0)
     population = SMSEMOAPopulation(pop_size, reference_point)
-    population.pre_indi_gen([create_individual_pickup(problem) for _ in range(pop_size)])
+    population.indivs = indi_list
 
     # Evaluate initial fitness
     for indi in population.indivs:
@@ -63,12 +63,13 @@ def run_sms_emoa(problem, pop_size, max_gen, reference_point, crossover_operator
         population.natural_selection()
 
         print(f"Generation {gen + 1}: Hypervolume = {cal_hv_front(population.external_pop, reference_point)}")
-        # for i in population.external_pop:
-        #     print(cal_fitness(problem, i))
+        for i in population.external_pop:
+            print(cal_fitness(problem, i))
 
     return population.external_pop
 
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    run_sms_emoa(graph, 100, 100, np.array([1, 1, 1]), crossover_operator, mutation_operator, calculate_fitness)
+    indi_list = [create_individual_pickup(graph) for _ in range(100)]
+    run_sms_emoa(graph, 100, 100, indi_list, np.array([1, 1, 1]), crossover_operator, mutation_operator, calculate_fitness)
