@@ -393,7 +393,6 @@ def cost(graph, solution):
         for i in range(1,len(route) - 1): #skip first leader node
             current_node = route[i]
             next_node = route[i+1]
-            capacity
 
             # if current_node == next_node:
             #     raise Exception("Route has duplicate nodes: {}".format(route))
@@ -554,6 +553,6 @@ def calculate_fitness(problem, individual):
     
     # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
     # individual.objectives = [(total_distance/10000)/0.00284, vehicle_fairness/200, customer_fairness/20]
-    individual.objectives = [(total_distance/10000 /10), vehicle_fairness/200 / 10, customer_fairness/20 / 10]
+    individual.objectives = [(total_distance), vehicle_fairness, customer_fairness]
     
     return individual.objectives

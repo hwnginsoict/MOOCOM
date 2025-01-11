@@ -6,11 +6,12 @@ from moo_algorithm.pfg_moea import run_pfgmoea  # <-- make sure this import is c
 import json
 import numpy as np
 
-if __name__ == "__main__":
+def main(number = 8, type = "LC2", index = 1, seed = 0):
     # 1) Prepare data and create an initial population of individuals
-    file = "LC2_8_1"
-    seed = 0
-    filepath = f'.\\data\\dpdptw\\800\\{file}.csv'
+
+    # filepath = f'.\\data\\dpdptw\\{number}00\\{type}_{number}_{index}.csv'
+    filepath = f'.\\data\\dpdptw\\800\\LC2_8_1.csv'
+
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
 
@@ -34,8 +35,11 @@ if __name__ == "__main__":
         "PFG-EMOA": pfg_results
     }
 
-    name_store = f"Result/{file}_{seed}.json"
+    name_store = f"Result/{type}_{number}_{index}_{seed}.json"
     with open(name_store, "w") as f:
         json.dump(final_results, f, indent=2)
 
     print(f"Results stored in {name_store}")
+
+if __name__ == "__main__":
+    main()
