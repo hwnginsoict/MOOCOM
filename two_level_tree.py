@@ -252,7 +252,9 @@ def create_individual(problem: Problem):
 
 
 from moo_algorithm.nsga_ii import run_nsga_ii
-from moo_algorithm.pfg_moea import run_pfgmoea
+from moo_algorithm.pfg_moea_knee import run_pfgmoea
+from moo_algorithm.moead_plus import run_moead_plus, init_weight_vectors_3d
+from moo_algorithm.nsga_iii import run_nsga_iii
 if __name__  == "__main__":
     # num_vehicle = 5
     # num_request = 4
@@ -266,9 +268,14 @@ if __name__  == "__main__":
     # print(vehicle_routes)
     # EC, CF, VF = cal_objectives(vehicle_routes, problem)
     # print(EC, CF, VF)
-    indi_list = [create_individual(problem) for _ in range(100)]
-    a = run_nsga_ii(10, problem, indi_list, 100, 100, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
-    b = run_pfgmoea(10, problem, indi_list, 100, 100, 100, 0.01, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
+    indi_list = [create_individual(problem) for _ in range(50)]
+    a = run_nsga_ii(10, problem, indi_list, 50, 50, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
+    print("GECCO_2025")
+    b = run_pfgmoea(10, problem, indi_list, 50, 50, 5, 0.01, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
+    # print("GECCO_2025")
+    # c = run_moead_plus(10, problem, indi_list, 100, 50, 5, init_weight_vectors_3d, crossover_operator,mutation_operator, cal_fitness)
+    # print("GECCO_2025")
+    # d = run_nsga_iii(10, problem, indi_list, 100, 50, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
 
 
     

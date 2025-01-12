@@ -1,10 +1,10 @@
 import multiprocessing
 import sys
 import os
-from metric import cal_hv_front
 import numpy as np
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
+from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
 from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
@@ -133,8 +133,8 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         moead_pop.natural_selection()
     pool.close()
 
-    for i in moead_pop.external_pop:
-        print(i.objectives)
+    # for i in moead_pop.external_pop:
+    #     print(i.objectives)
     return moead_pop.external_pop
 
 
