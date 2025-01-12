@@ -166,7 +166,7 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
     print("Generation 0: ", cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
 
     history = {}
-    history[0] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
+    # history[0] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
 
     for gen in range(max_gen):
         knee_point = cal_knee_point(pop)
@@ -197,7 +197,7 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
         pop.natural_selection()
         print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
 
-        history[gen + 1] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
+        # history[gen + 1] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
 
     pool.close()
 
@@ -211,9 +211,9 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
     # print(history)
     return history
 
-if __name__ == "__main__":
-    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-    # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
-    graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_pfgmoea(4, graph, indi_list, 100, 100, 100, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)
+# if __name__ == "__main__":
+#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+#     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
+#     graph = Graph(filepath)
+#     indi_list = [create_individual_pickup(graph) for _ in range(100)]
+#     run_pfgmoea(4, graph, indi_list, 100, 100, 100, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)

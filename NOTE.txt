@@ -1,0 +1,10 @@
+Hàm cal_objectives(vehicle_routes, problem: Problem) đang nhận vào vehicle_routes
+Ví dụ: [array([], dtype=int32), array([ 4,  3, -3, -4]), array([ 2,  1, -1, -2]), array([], dtype=int32), array([], dtype=int32)]
+tức là list<list>: giá trị dương là pickup của yêu cầu, âm là delivery
+QUAN TRỌNG: Em thử thay đổi cái giải mã của em về vehicle_routes để sử dụng hàm cal_objectives này xem thế nào?
+Các request được đánh chỉ số từ 1 và theo thứ tự của file request.csv
+
+QUAN TRỌNG 2: Em sinh tất cả data theo định dạng của request.csv và không cần có depot trong dữ liệu, vì a đang để depot mặc định là (0, 0)
+
+Mình cần hoàn thành bản draft đầu tiền trong tuần này để gửi cô!
+A đang thử 1 cách mã hóa mới, nếu tốt mình sẽ đề xuất được nhiều thứ vì nó là mã hóa số thực nên em adapt cái cách mã hóa của em để chạy mới đánh giá được

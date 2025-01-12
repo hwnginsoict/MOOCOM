@@ -2,6 +2,7 @@ import numpy as np
 from copy import deepcopy
 from graph.request import Request
 import pandas as pd
+from population import Individual
 
 class Element:
     def __init__(self, isLeader = None, root = None, left_child = None, right_child = None, 
@@ -28,6 +29,18 @@ class Element:
         self.repair_element()
 
     def repair_element(self):
+        if self.root < 0:
+            self.root = 0
+        if self.root > 1:
+            self.root = 1
+        if self.left_child < 0:
+            self.left_child = 0
+        if self.left_child > 1:
+            self.left_child = 1
+        if self.right_child < 0:
+            self.right_child = 0
+        if self.right_child > 1:
+            self.right_child = 1
         if self.left_child > self.right_child:
             self.left_child, self.right_child = self.right_child, self.left_child
 
@@ -172,7 +185,74 @@ def cal_objectives(vehicle_routes, problem: Problem):
     return sum(EC_vehicle), np.std(WT_customer[1:]), np.std(DT_vehicle)
 
 
+def cal_fitness(problem: Problem, individual: Individual):
+    vehicle_routes = decode_chromosome(individual.chromosome, problem.num_vehicle)
+    EC, CF, VF = cal_objectives(vehicle_routes, problem)
+    return [EC/20000, CF/20000, VF/20000]
 
+def crossover_operator(problem: Problem, parent1: Individual, parent2: Individual):
+    # SBX crossover
+    eta_c = 2
+    chromosome1 = deepcopy(parent1.chromosome)
+    chromosome2 = deepcopy(parent2.chromosome)
+    # u = np.random.rand()
+    # if u <= 0.5:
+    #     beta = 0.5*((1 + 2*u)**(1/(eta_c + 1)))
+    # else:
+    #     beta = 0.5*((1 + 2*(1 - u))**(-1/(eta_c + 1)))
+    for i in range(len(chromosome1)):
+        u = np.random.rand()
+        if u <= 0.5:
+            beta = 0.5*((1 + 2*u)**(1/(eta_c + 1)))
+        else:
+            beta = 0.5*((1 + 2*(1 - u))**(-1/(eta_c + 1)))
+        chromosome1[i].root = 0.5*((1 + beta)*chromosome1[i].root + (1 - beta)*chromosome2[i].root)
+        chromosome2[i].root = 0.5*((1 - beta)*chromosome1[i].root + (1 + beta)*chromosome2[i].root)
+        chromosome1[i].left_child = 0.5*((1 + beta)*chromosome1[i].left_child + (1 - beta)*chromosome2[i].left_child)
+        chromosome2[i].left_child = 0.5*((1 - beta)*chromosome1[i].left_child + (1 + beta)*chromosome2[i].left_child)
+        chromosome1[i].right_child = 0.5*((1 + beta)*chromosome1[i].right_child + (1 - beta)*chromosome2[i].right_child)
+        chromosome2[i].right_child = 0.5*((1 - beta)*chromosome1[i].right_child + (1 + beta)*chromosome2[i].right_child)
+        chromosome1[i].repair_element()
+        chromosome2[i].repair_element()
+    return Individual(chromosome1), Individual(chromosome2)
+
+def mutation_operator(problem: Problem, individual: Individual):
+    # Polynomial mutation
+    eta_m = 2
+    chromosome = deepcopy(individual.chromosome)
+    for i in range(len(chromosome)):
+        u = np.random.rand()
+        delta = min(chromosome[i].root, 1 - chromosome[i].root)
+        if u <= 0.5:
+            delta = delta*(2*u)**(1/(eta_m + 1)) - 1
+        else:
+            delta = 1 - (2*(1 - u))**(1/(eta_m + 1))
+        chromosome[i].root = chromosome[i].root + delta
+        u = np.random.rand()
+        delta = min(chromosome[i].left_child, 1 - chromosome[i].left_child)
+        if u <= 0.5:
+            delta = delta*(2*u)**(1/(eta_m + 1)) - 1
+        else:
+            delta = 1 - (2*(1 - u))**(1/(eta_m + 1))
+        chromosome[i].left_child = chromosome[i].left_child + delta
+        u = np.random.rand()
+        delta = min(chromosome[i].right_child, 1 - chromosome[i].right_child)
+        if u <= 0.5:
+            delta = delta*(2*u)**(1/(eta_m + 1)) - 1
+        else:
+            delta = 1 - (2*(1 - u))**(1/(eta_m + 1))
+        chromosome[i].right_child = chromosome[i].right_child + delta
+        chromosome[i].repair_element()
+    return Individual(chromosome)
+
+
+def create_individual(problem: Problem):
+    chromosome = create_chromosome(problem.num_vehicle, problem.num_request)
+    return Individual(chromosome)
+
+
+from moo_algorithm.nsga_ii import run_nsga_ii
+from moo_algorithm.pfg_moea import run_pfgmoea
 if __name__  == "__main__":
     # num_vehicle = 5
     # num_request = 4
@@ -181,10 +261,15 @@ if __name__  == "__main__":
     # print(vehicle_routes)
     problem = Problem()
     problem.read_file(r"data\requests.csv", 10, 40, 1000)
-    chromosome = create_chromosome(problem.num_vehicle, problem.num_request)
-    vehicle_routes = decode_chromosome(chromosome, problem.num_vehicle)
-    print(vehicle_routes)
-    EC, CF, VF = cal_objectives(vehicle_routes, problem)
-    print(EC, CF, VF)
+    # chromosome = create_chromosome(problem.num_vehicle, problem.num_request)
+    # vehicle_routes = decode_chromosome(chromosome, problem.num_vehicle)
+    # print(vehicle_routes)
+    # EC, CF, VF = cal_objectives(vehicle_routes, problem)
+    # print(EC, CF, VF)
+    indi_list = [create_individual(problem) for _ in range(100)]
+    a = run_nsga_ii(10, problem, indi_list, 100, 100, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
+    b = run_pfgmoea(10, problem, indi_list, 100, 100, 100, 0.01, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
+
+
     
     
