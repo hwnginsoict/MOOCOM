@@ -211,9 +211,9 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
     # print(history)
     return history
 
-# if __name__ == "__main__":
-#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-#     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
-#     graph = Graph(filepath)
-#     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-#     run_pfgmoea(4, graph, indi_list, 100, 100, 100, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)
+if __name__ == "__main__":
+    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+    # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
+    graph = Graph(filepath)
+    indi_list = [create_individual_pickup(graph) for _ in range(100)]
+    run_pfgmoea(4, graph, indi_list, 100, 100, 100, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)

@@ -379,6 +379,9 @@ def cost(graph, solution):
     Returns:
         (total_distance, vehicle_fairness, customer_fairness)
     """
+
+
+    print("solution:", solution)
     
     total_distance = 0.0
     ve_fair = []   # lưu quãng đường của từng vehicle (route)
@@ -407,7 +410,7 @@ def cost(graph, solution):
             route_distance += dist_ij
             
             # Tính thời gian di chuyển
-            travel_time = dist_ij / graph.vehicle_speed if graph.vehicle_speed else 0
+            travel_time = dist_ij / graph.vehicle_speed
             time += travel_time
             
             # Nếu next_node != 0 => đó là khách hàng thật (không phải depot)
