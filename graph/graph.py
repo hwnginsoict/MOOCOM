@@ -37,13 +37,16 @@ class Graph:
                 float(item[3]), # ready_time
                 float(item[4]), # due_time
                 float(item[5]), # demand
-                float(item[6]), # service_time
+                90, # service_time
                 int(item[7]),   # pid 
                 int(item[8]),   # did 
                 float(item[9])  # time (hoặc speed)
             )
             for item in node_list
         ]
+
+        self.depot = nodes[0]
+
 
         pickup_nodes = [node for node in nodes if node.pid == 0 and node.did != 0]
 
@@ -57,7 +60,8 @@ class Graph:
                 dist[i][j] = d
                 dist[j][i] = d  # Ghi đối xứng
 
-        vehicle_num = int(nodes[0].demand)
+        # vehicle_num = int(nodes[0].demand)
+        vehicle_num = 10
         vehicle_cap = nodes[0].service_time
         vehicle_speed = nodes[0].time
 
