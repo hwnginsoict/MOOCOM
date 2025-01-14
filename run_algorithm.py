@@ -9,7 +9,7 @@ from algorithm.fair_ga import FairGA
 import json
 import numpy as np
 
-def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 200):
+def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100):
     # 1) Prepare data and create an initial population of individuals
 
     # filepath = f'.\\data\\dpdptw\\{number}00\\{type}_{number}_{index}.csv'
@@ -67,5 +67,5 @@ if __name__ == "__main__":
         # for type in ["LC1", "LC2", "LR1", "LR2", "LRC1", "LRC2"]:
         for type in ["LC1", "LC2"]:
             for i in range(1, 11):
-                main(num, type, i, 0, 100, 100)
+                main(num, type, i, 0, 100, 150)
                 print(f"Done {num}_{type}_{i}")
