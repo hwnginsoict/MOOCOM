@@ -60,23 +60,11 @@ class Graph:
                 dist[i][j] = d
                 dist[j][i] = d  # Ghi đối xứng
 
-        # vehicle_num = int(nodes[0].demand)
-        vehicle_num = 10
+        vehicle_num = int(nodes[0].demand)
+        # vehicle_num = 10
         vehicle_cap = nodes[0].service_time
         vehicle_speed = nodes[0].time
-
-
-        T = 1/2 * self.cd * self.p * self.A + (self.mk + vehicle_cap) * self.g * self.cr
-        G = self.xi / (self.kappa * self.psi) * (self.pi * self.R + T / self.eta)
-        self.G = G
-
-        # print("G = ", G)
-
-        # engine_energy_consumption += G * graph.dist[current_ind][next_ind]
-
-        # dist = dist*G
-
-        # print(G)
+        
 
         self.pickup_nodes = pickup_nodes
     

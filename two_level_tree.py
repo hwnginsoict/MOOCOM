@@ -276,7 +276,3 @@ if __name__  == "__main__":
     # c = run_moead_plus(10, problem, indi_list, 100, 50, 5, init_weight_vectors_3d, crossover_operator,mutation_operator, cal_fitness)
     # print("GECCO_2025")
     # d = run_nsga_iii(10, problem, indi_list, 100, 50, crossover_operator, mutation_operator, 0.8, 0.1, cal_fitness)
-
-
-    
-    
