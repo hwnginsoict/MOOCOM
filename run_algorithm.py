@@ -12,7 +12,7 @@ def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100
     # 1) Prepare data and create an initial population of individuals
 
     # filepath = f'.\\data\\dpdptw\\{number}00\\{type}_{number}_{index}.csv'
-    filepath = f'\\data\\dpdptw\\{number}00\\{type}_{number}_{index}.csv'
+    filepath = f'./data/dpdptw/{number}00/{type}_{number}_{index}.csv'
 
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(num)]
