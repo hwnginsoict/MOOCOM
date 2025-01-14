@@ -60,7 +60,7 @@ def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100
 
 if __name__ == "__main__":
     
-    for num in [2,4,8]:
+    for num in [2]:
         for type in ["LC1", "LC2", "LR1", "LR2", "LRC1", "LRC2"]:
             for i in range(1, 11):
                 main(num, type, i, 0, 100, 100)
