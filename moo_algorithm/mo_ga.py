@@ -7,9 +7,11 @@ import os
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-from utils_new import calculate_fitness, create_individual_pickup, crossover_operator, mutation_operator
+from utils import calculate_fitness, create_individual_pickup, crossover_operator, mutation_operator
 
 from population import Population
+
+
 
 def rank_population(graph, population, rank_type="total_distance"):
     """
@@ -22,7 +24,7 @@ def rank_population(graph, population, rank_type="total_distance"):
     # Tính fitness trước
     for indiv in population.indivs:
         if not indiv.objectives:  # nếu chưa có objectives
-            calculate_fitness(graph, indiv)
+            cal_fitness(graph, indiv)
     # Sort theo objective 0 (giả sử total_distance) - ascending
 
     if rank_type == "total_distance":
@@ -60,7 +62,7 @@ def local_optimization(graph, individual):
     # ví dụ: 2-opt route, or shifting...
     pass
 
-def GA(graph, 
+def MO_GA(graph, 
            max_iteration=100, 
            population_size=30, 
            cross_size=10, 
@@ -83,6 +85,7 @@ def GA(graph,
     while iteration < max_iteration:
         # (3) rank(S, probability)
         rank_population(graph, population, rank_type="total_distance")
+        
         
         current_best = population.indivs[0]  # sau sort ascending
         print(f"Iteration {iteration}, {current_best.objectives[0]}, {current_best.objectives[1]}, {current_best.objectives[2]}")

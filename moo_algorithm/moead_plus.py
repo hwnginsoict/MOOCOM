@@ -192,7 +192,7 @@ def run_moead_plus(processing_number, problem, indi_list, pop_size, max_gen, nei
         Pareto_store = []
         for indi in moead_pop.external_pop:
             Pareto_store.append(list(indi.objectives))
-        history[gen] = Pareto_store
+        history[gen+1] = Pareto_store
     pool.close()
 
     # for i in moead_pop.external_pop:

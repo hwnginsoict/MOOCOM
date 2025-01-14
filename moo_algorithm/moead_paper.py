@@ -6,7 +6,7 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
-from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 def init_weight_vectors_2d(pop_size):
@@ -147,7 +147,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     moead_pop.initialize_z_star()
     moead_pop.update_external(moead_pop.indivs)
     # moead_pop.update_weights(problem, moead_pop.indivs)
-    
+
     # print("Generation 0: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
 
     history = {}
@@ -178,7 +178,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         Pareto_store = []   
         for indi in moead_pop.external_pop:
             Pareto_store.append(list(indi.objectives))
-        history[gen] = Pareto_store
+        history[gen+1] = Pareto_store
 
     pool.close()
 

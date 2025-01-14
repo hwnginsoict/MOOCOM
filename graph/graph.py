@@ -37,7 +37,7 @@ class Graph:
                 float(item[3]), # ready_time
                 float(item[4]), # due_time
                 float(item[5]), # demand
-                90, # service_time
+                float(item[6]), # service_time
                 int(item[7]),   # pid 
                 int(item[8]),   # did 
                 float(item[9])  # time (hoặc speed)
@@ -63,8 +63,7 @@ class Graph:
         vehicle_num = int(nodes[0].demand)
         # vehicle_num = 10
         vehicle_cap = nodes[0].service_time
-        vehicle_speed = nodes[0].time
-        
+        vehicle_speed = 4/6
 
         self.pickup_nodes = pickup_nodes
     

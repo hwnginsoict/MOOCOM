@@ -6,8 +6,8 @@ import os
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
-from utils import *
-from population import *
+from utils_new import create_individual_pickup, calculate_fitness, crossover_operator, mutation_operator
+from population import Population
 
 def rank_population(graph, population, rank_type="total_distance"):
     """
@@ -58,14 +58,7 @@ def local_optimization(graph, individual):
     # ví dụ: 2-opt route, or shifting...
     pass
 
-def FairGA(graph, 
-           max_iteration=100, 
-           population_size=30, 
-           cross_size=10, 
-           localRate=0.3, 
-           mutateRate=0.1, 
-           elitistRate=0.1,
-           crossRate=0.5):
+def FairGA(graph, indi_list, max_iteration=100,population_size=30,cross_size=10,localRate=0.3,mutateRate=0.1,elitistRate=0.1,crossRate=0.5):
     """
     Cài đặt theo pseudo-code:
     1) Initialize S
@@ -90,7 +83,7 @@ def FairGA(graph,
     # (1) Khởi tạo quần thể S
     # population = [create_solution(graph) for _ in range(population_size)]
     population = Population(population_size)
-    population.indivs = [create_individual_pickup(graph) for _ in range(population_size)]
+    population.indivs = indi_list
     
     # Đánh giá fitness ban đầu
     for indiv in population.indivs:
@@ -110,7 +103,8 @@ def FairGA(graph,
         # print(decode_solution_pickup(graph, current_best.chromosome))
         # raise Exception
     
-        print(f"Iteration {iteration}, {current_best.objectives[0]}, {current_best.objectives[1]}, {current_best.objectives[2]}")
+        # print(f"Iteration {iteration}, {current_best.objectives[0]}, {current_best.objectives[1]}, {current_best.objectives[2]}")
+        
         if Sbest is None or current_best.objectives[0] < Sbest.objectives[0]:
             Sbest = copy.deepcopy(current_best)
         
@@ -127,15 +121,17 @@ def FairGA(graph,
             S2 = copy.deepcopy(population)
             
             # (7..9) for chromosome in S1 -> Assignvehicle(vehicle-fairness)
-            for chrom in S1.indivs:
-                assign_vehicle(chrom, fairness_type="vehicle-fairness")
+
+            # for chrom in S1.indivs:
+            #     assign_vehicle(chrom, fairness_type="vehicle-fairness")
             
             # (10) rank(S1, service vehicle)
             rank_population(graph, S1, rank_type="vehicle")
             
             # (11..13) for chromosome in S2 -> Assignvehicle(customer-fairness)
-            for chrom in S2.indivs:
-                assign_vehicle(chrom, fairness_type="customer-fairness")
+
+            # for chrom in S2.indivs:
+            #     assign_vehicle(chrom, fairness_type="customer-fairness")
             
             # (14) rank(S2, customer)
             rank_population(graph, S2, rank_type="customer")
@@ -197,4 +193,6 @@ from graph.graph import Graph
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    Sbest = FairGA(graph, max_iteration=100, population_size=30, cross_size=10, localRate=0.3, mutateRate=0.1, elitistRate=0.1, crossRate=0.5)
+    indi_list = [create_individual_pickup(graph) for _ in range(100)]
+    graph = Graph(filepath)
+    Sbest = FairGA(graph, indi_list, max_iteration=100, population_size=100, cross_size=10, localRate=0.3, mutateRate=0.1, elitistRate=0.1, crossRate=0.5)
