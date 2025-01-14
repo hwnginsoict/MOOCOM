@@ -104,8 +104,10 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     history_hv = []
     nsga_ii_pop.natural_selection()
     history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
-    print("Generation 0: ", history_hv[-1])
-    print("Generation 0: Done")
+
+    # print("Generation 0: ", history_hv[-1])
+    # print("Generation 0: Done")
+
     Pareto_store = []
     for indi in nsga_ii_pop.ParetoFront[0]:
         Pareto_store.append(list(indi.objectives))
@@ -124,7 +126,9 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         nsga_ii_pop.indivs.extend(offspring)
         nsga_ii_pop.natural_selection()
         history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
-        print("Generation {}: ".format(gen + 1), history_hv[-1])
+
+        # print("Generation {}: ".format(gen + 1), history_hv[-1])
+
         # print("Generation {}: Done".format(gen + 1))
         for indi in nsga_ii_pop.ParetoFront[0]:
             Pareto_store.append(list(indi.objectives))

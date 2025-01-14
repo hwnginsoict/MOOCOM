@@ -147,7 +147,14 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     moead_pop.initialize_z_star()
     moead_pop.update_external(moead_pop.indivs)
     # moead_pop.update_weights(problem, moead_pop.indivs)
-    print("Generation 0: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+    
+    # print("Generation 0: ", cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+
+    history = {}
+    Pareto_store = []   
+    for indi in moead_pop.external_pop:
+        Pareto_store.append(list(indi.objectives))
+    history[0] = Pareto_store
 
     for gen in range(max_gen):
         offspring = moead_pop.reproduction(problem, crossover_operator, mutation_operator, mutation_rate)
@@ -162,9 +169,17 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         moead_pop.filter_external()
         moead_pop.indivs.extend(offspring)
         # moead_pop.update_weights(problem, offspring)
-        print("Generation {}: ".format(gen + 1), cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+
+        # print("Generation {}: ".format(gen + 1), cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
+
         # print("Generation {}: ".format(gen + 1))
         moead_pop.natural_selection()
+
+        Pareto_store = []   
+        for indi in moead_pop.external_pop:
+            Pareto_store.append(list(indi.objectives))
+        history[gen] = Pareto_store
+
     pool.close()
 
     # print("Last:",  cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1])))
@@ -176,16 +191,18 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     # return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
     # return moead_pop.external_pop
 
-    list = []
-    for i in moead_pop.external_pop:
-        list.append(i.objectives)
-    return list
+    # list = []
+    # for i in moead_pop.external_pop:
+    #     list.append(i.objectives)
+    # return list
 
+    # print(history)
+    return history
 
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(1000)]
-    run_moead(4, graph, indi_list, 1000, 50, 10, init_weight_vectors_3d, crossover_operator, mutation_operator, 
+    indi_list = [create_individual_pickup(graph) for _ in range(100)]
+    run_moead(4, graph, indi_list, 100, 50, 10, init_weight_vectors_3d, crossover_operator, mutation_operator, 
               0.1, calculate_fitness)
  

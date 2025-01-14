@@ -448,9 +448,9 @@ def cost(graph, solution):
 def cost_energy(graph, solution):
     """
     Computes:
-      1) total_energy    - total energy consumption of the entire solution
-      2) vehicle_fairness - standard deviation of energy consumption among vehicles
-      3) customer_fairness - standard deviation of customer tardiness
+      1) total_energy    - total energy consumption of the entire solution (litres of fuel)
+      2) vehicle_fairness - standard deviation of energy consumption among vehicles (km)
+      3) customer_fairness - standard deviation of customer tardiness (minutes)
     
     Args:
         graph: Graph object containing attributes like dist, nodes, 
@@ -475,7 +475,8 @@ def cost_energy(graph, solution):
     pi_val = graph.pi     # e.g., 0.2   (renamed to avoid conflict with math.pi)
     R = graph.R           # e.g., 165
     eta = graph.eta       # e.g., 0.36
-    v_speed = 40
+    v_speed_km_h = 40
+    v_speed_km_m = 0.6666666666666666
 
     total_energy = 0.0
     ve_energy = []   # list to store energy consumption per vehicle
@@ -487,12 +488,12 @@ def cost_energy(graph, solution):
         d_ij = graph.dist[current_node][next_node]
 
         # Power consumption terms
-        p_ij = 0.5 * cd * p * A * v_speed**3 + (mk + current_capacity) * g * cr * v_speed
+        p_ij = 0.5 * cd * p * A * v_speed_km_h**3 + (mk + current_capacity) * g * cr * v_speed_km_h
 
         # Compute energy consumption L_ij using the provided formula
         # Here, we use the formula:
         # L_ij = xi/(kappa*psi) * (pi*R + p_ij/eta) * d_ij/v_speed
-        L_ij = (xi / (kappa * psi)) * (pi_val * R + p_ij / eta) * (d_ij / v_speed)
+        L_ij = (xi / (kappa * psi)) * (pi_val * R + p_ij / eta) * (d_ij / v_speed_km_h)
 
         return L_ij, d_ij
 
@@ -504,7 +505,7 @@ def cost_energy(graph, solution):
 
         L_ij, d_ij = energy_for_leg(0, route[1], current_capacity)
         route_energy += L_ij
-        travel_time = d_ij / v_speed
+        travel_time = d_ij / v_speed_km_m
         time += travel_time
         
         # Process each leg in the route
@@ -517,7 +518,7 @@ def cost_energy(graph, solution):
             route_energy += L_ij
 
             # Travel time calculation
-            travel_time = d_ij / v_speed
+            travel_time = d_ij / v_speed_km_m
             time += travel_time
 
             # If next_node is a customer (not depot), handle time windows and capacity updates
@@ -664,6 +665,6 @@ def calculate_fitness(problem, individual):
     
     # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
     # individual.objectives = [(total_distance/10000)/0.00284, vehicle_fairness/200, customer_fairness/20]
-    individual.objectives = [(total_distance)/20000, vehicle_fairness/20000, customer_fairness/20000]
+    individual.objectives = [(total_distance), vehicle_fairness, customer_fairness]
     
     return individual.objectives
