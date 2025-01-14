@@ -204,11 +204,11 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
 
     # return pop.ParetoFront[0]
 
-    result = []
-    for each in pop.ParetoFront[0]:
-        result.append(each.objectives)
-        print(each.objectives)
-    return result
+    # result = []
+    # for each in pop.ParetoFront[0]:
+    #     result.append(each.objectives)
+    #     print(each.objectives)
+    # return result
 
     # print(history)
     return history
