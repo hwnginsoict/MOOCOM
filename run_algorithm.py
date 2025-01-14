@@ -37,7 +37,7 @@ def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100
     moead_plus_results["time"] = moead_plus_time
 
     start_time_moead_paper = time.time()
-    moead_paper_results = run_moead(4, graph, indi_list, num, max_gen, 10, init_weight_vectors_3d_plus, crossover_operator, mutation_operator, calculate_fitness)
+    moead_paper_results = run_moead(4, graph, indi_list, num, max_gen, 10, init_weight_vectors_3d_plus, crossover_operator, mutation_operator, 0.1 , calculate_fitness)
     moead_paper_time = time.time() - start_time_moead_paper
     moead_paper_results["time"] = moead_paper_time
 
