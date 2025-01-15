@@ -8,3 +8,24 @@ QUAN TRỌNG 2: Em sinh tất cả data theo định dạng của request.csv v�
 
 Mình cần hoàn thành bản draft đầu tiền trong tuần này để gửi cô!
 A đang thử 1 cách mã hóa mới, nếu tốt mình sẽ đề xuất được nhiều thứ vì nó là mã hóa số thực nên em adapt cái cách mã hóa của em để chạy mới đánh giá được
+
+15/1/2025:
+
+Mô hình bài toán: 
+- có nên đổi Vehicle Fairness thành Driver Fairness hay Provider Fairness
+- cần 1 hình vẽ trực quan sống động về bài toán
+
+Thuật toán đề xuất: 
+- Chọn PFG và mã hóa mới???
+- 1 hình vẽ sống động trực quan duy nhất mô tả thuật toán
+
+Thực nghiệm: Cần những gì?
+- Bảng kết quả MO theo IGD và HV, nhóm theo number và distribution
+- Độ hội tụ HV, IGD của các MOO, theo number và theo distribution ???, 
+- phân tích number với số xe, distribution với nhau
+
+- So sánh với SO?? Cụ thể: FairGA và GA thường, còn ko?
+
+- So sánh với cách mã hóa cũ ??
+
+Revise:
