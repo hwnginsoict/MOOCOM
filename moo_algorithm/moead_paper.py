@@ -203,6 +203,7 @@ if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_moead(4, graph, indi_list, 100, 50, 10, init_weight_vectors_3d, crossover_operator, mutation_operator, 
+    result = run_moead(4, graph, indi_list, 100, 50, 10, init_weight_vectors_4d, crossover_operator, mutation_operator, 
               0.1, calculate_fitness)
+    print(result)
  

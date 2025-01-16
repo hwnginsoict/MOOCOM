@@ -56,7 +56,7 @@ def create_individual(graph):
     individual = Individual(keys)
     return individual
 
-def create_individual_pickup(graph):
+def create_individual_pickup_lerk(graph):
     """
     Tạo ra một cá thể (chromosome) theo mã hóa LERK.
     Returns:
@@ -169,7 +169,7 @@ def repair_pickup_delivery(graph, solution):
     return solution
 
 
-def crossover_operator(graph, parent1, parent2):
+def crossover_operator_lerk(graph, parent1, parent2):
     """
     Thực hiện lai ghép (crossover) giữa 2 cá thể cha/mẹ (parent1, parent2)
     Trả về 2 cá thể con (child1, child2) không tính fitness.
@@ -193,7 +193,7 @@ def crossover_operator(graph, parent1, parent2):
 
     return child1, child2
 
-def mutation_operator(graph, individual, mutation_rate=0.1):
+def mutation_operator_lerk(graph, individual, mutation_rate=0.1):
     """
     Đột biến (mutation) lên 1 cá thể, trả về 1 cá thể con.
     """
@@ -441,6 +441,150 @@ def cost_energy(graph, solution):
     return total_energy, vehicle_fairness, customer_fairness
 
 
+def cost_full(graph, solution):
+    """
+    Computes:
+      1) total_energy       - total energy consumption of the entire solution (litres of fuel)
+      2) vehicle_fairness   - standard deviation of energy consumption among vehicles (litres)
+      3) customer_fairness  - standard deviation of total request tardiness (minutes),
+                              where request tardiness = tardiness_pickup + tardiness_delivery
+      4) max_time           - the maximum tardiness of any single node (or you could adapt it
+                              to be max request tardiness if desired)
+
+    Args:
+        graph: Graph object containing attributes like dist, nodes, 
+               vehicle_speed, and energy-related parameters.
+        solution: list of routes, each route is a list of nodes 
+                  [0, i1, i2, ..., 0] (assuming 0 is depot)
+    
+    Returns:
+        (total_energy, vehicle_fairness, customer_fairness, max_time)
+    """
+
+    # Extract energy-related constants from graph or define them here
+    cd = graph.cd
+    xi = graph.xi
+    kappa = graph.kappa
+    p = graph.p
+    A = graph.A
+    mk = graph.mk
+    g = graph.g
+    cr = graph.cr
+    psi = graph.psi
+    pi_val = graph.pi
+    R = graph.R
+    eta = graph.eta
+
+    # Speeds, etc.
+    v_speed_km_h = 40
+    v_speed_km_m = 40 / 60.0  # ~0.6667 km/min
+
+    total_energy = 0.0
+    ve_energy = []                 # energy consumption per vehicle
+    node_tardiness = dict()        # dictionary to store tardiness per node, e.g. node_tardiness[node_id] = tardiness
+
+    # Initialize all node tardiness to 0
+    for node in graph.nodes:
+        node_tardiness[node.nid] = 0.0
+
+    # Function to compute energy for a segment between two nodes
+    def energy_for_leg(current_node, next_node, current_capacity):
+        # Calculate distance between nodes
+        d_ij = graph.dist[current_node][next_node]
+
+        # Power consumption terms
+        p_ij = 0.5 * cd * p * A * (v_speed_km_h ** 3) + (mk + current_capacity) * g * cr * v_speed_km_h
+
+        # Compute energy consumption L_ij using the provided formula:
+        L_ij = (xi / (kappa * psi)) * (pi_val * R + (p_ij / eta)) * (d_ij / v_speed_km_h)
+        return L_ij, d_ij
+
+    # --- Process each route ---
+    for route in solution:
+        route_energy = 0.0
+        current_capacity = 0.0
+        time = 0.0  # track time along the route for tardiness
+
+        # ----- Leg from depot (0) to first customer -----
+        if len(route) > 1:
+            L_ij, d_ij = energy_for_leg(0, route[1], current_capacity)
+            route_energy += L_ij
+            travel_time = d_ij / v_speed_km_m
+            time += travel_time
+
+        # ----- Leg from first customer to intermediate, ... , until last -----
+        for i in range(1, len(route) - 1):
+            current_node = route[i]
+            next_node = route[i + 1]
+
+            # If next_node is not depot, we handle time windows, capacity, etc.
+            if next_node != 0:
+                # The node object
+                customer = graph.nodes[next_node]
+
+                # Arrive at this next_node
+                time = max(time, customer.ready_time)  # if we arrive too early, we wait
+
+                # Tardiness check BEFORE service
+                if time > customer.due_time:
+                    tardiness = time - customer.due_time
+                    node_tardiness[next_node] = tardiness
+                else:
+                    node_tardiness[next_node] = 0.0
+
+                # Service time
+                time += customer.service_time
+
+                # Capacity update: 
+                # - If next_node is pickup node (pid=0, did!=0), we are "picking up" 
+                #   => vehicle is heavier, so capacity (weight) should go up
+                # - If next_node is a delivery node (pid!=0), we are "dropping off" 
+                #   => capacity (weight) goes down
+                #   (Adjust logic to match your problem definition!)
+                
+                # In many pickup-and-delivery formulations, a node with positive demand
+                # is 'pickup' (increase load) and negative demand is 'delivery' (decrease load).
+                # But you might do it differently depending on your data. 
+                current_capacity += customer.demand
+
+            # Compute energy and distance for this segment (current_node -> next_node)
+            L_ij, d_ij = energy_for_leg(current_node, next_node, current_capacity)
+            route_energy += L_ij
+
+            # Travel time (in minutes)
+            travel_time = d_ij / v_speed_km_m
+            time += travel_time
+
+        # ----- Leg from last node back to depot (0) -----
+        if len(route) > 1:
+            L_ij, d_ij = energy_for_leg(route[-1], 0, current_capacity)
+            route_energy += L_ij
+
+        ve_energy.append(route_energy)
+        total_energy += route_energy
+
+    # Calculate vehicle_fairness
+    vehicle_fairness = standard_deviation(ve_energy)
+
+    # ------------------------------------------------------------------
+    #   Compute request-level tardiness
+    # ------------------------------------------------------------------
+    # We sum the tardiness of pickup_node and its corresponding delivery_node
+    # for each request: requests[pickup_node_id] = delivery_node_id.
+    request_tardiness_list = []
+    for pickup_nid, delivery_nid in graph.requests.items():
+        tardiness_pickup = node_tardiness.get(pickup_nid, 0.0)
+        tardiness_delivery = node_tardiness.get(delivery_nid, 0.0)
+        request_tardiness_list.append(tardiness_pickup + tardiness_delivery)
+
+    # Now the fairness is the standard deviation of the request-level sums
+    customer_fairness = standard_deviation(request_tardiness_list) if request_tardiness_list else 0.0
+
+    max_time = max(node_tardiness.values()) if node_tardiness else 0.0
+
+    return total_energy, vehicle_fairness, customer_fairness, max_time
+
+
 def variance(list):
     mean = sum(list) / len(list)
     variance = sum((x - mean) ** 2 for x in list) / len(list)
@@ -606,7 +750,7 @@ def decode_solution_pickup(problem, keys):
 #     return individual["objectives"]
 
 
-def calculate_fitness(problem, individual):
+def calculate_fitness_lerk(problem, individual):
     """
     Tính toán fitness (đa mục tiêu) cho một cá thể (individual).
     Ở đây, ta sử dụng hàm cost(route) trả về:
@@ -625,9 +769,9 @@ def calculate_fitness(problem, individual):
     route = decode_solution_pickup(problem, individual.chromosome)
     
     # 2) Tính cost
-    total_distance, vehicle_fairness, customer_fairness = cost_energy(problem, route)
+    total_distance, vehicle_fairness, customer_fairness, max_time = cost_full(problem, route)
     
     # 3) Lưu vào individual["objectives"] (mục tiêu đa mục tiêu)
-    individual.objectives = [total_distance, vehicle_fairness, customer_fairness]
+    individual.objectives = [total_distance, vehicle_fairness, customer_fairness, max_time]
     
     return individual.objectives

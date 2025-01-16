@@ -7,7 +7,7 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population
-from utils import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 def cal_knee_point(pop):
@@ -148,6 +148,15 @@ class PFGMOEAPopulation(Population):
         self.ParetoFront = new_fronts
         self.indivs = new_indivs
 
+def filter_external(pareto):
+    objectives = set()
+    new_external_pop = []
+    for indi in pareto:
+        if tuple(indi.objectives) not in objectives:
+            new_external_pop.append(indi)
+            objectives.add(tuple(indi.objectives))
+    return new_external_pop
+
 
 def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, sigma, crossover_operator, mutation_operator, 
             crossover_rate, mutation_rate, cal_fitness):
@@ -196,7 +205,9 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
         pop.indivs.extend(offspring)
         pop.natural_selection()
 
-        print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
+        # print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
+
+        pop.ParetoFront[0] = filter_external(pop.ParetoFront[0])
 
         history[gen] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
 
@@ -218,4 +229,5 @@ if __name__ == "__main__":
     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(50)]
-    run_pfgmoea(4, graph, indi_list, 50, 50, 5, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)
+    result = run_pfgmoea(4, graph, indi_list, 50, 50, 5, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)
+    print(result)

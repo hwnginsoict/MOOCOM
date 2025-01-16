@@ -6,7 +6,8 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
-from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+# from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+# from utils import crossover_operator_lerk, mutation_operator_lerk, calculate_fitness, create_individual_pickup_lerk
 from graph.graph import Graph
 
 class NSGAIIPopulation(Population):
@@ -87,6 +88,14 @@ class NSGAIIPopulation(Population):
         self.ParetoFront = new_fronts
         self.indivs = new_indivs
 
+def filter_external(pareto):
+    objectives = set()
+    new_external_pop = []
+    for indi in pareto:
+        if tuple(indi.objectives) not in objectives:
+            new_external_pop.append(indi)
+            objectives.add(tuple(indi.objectives))
+    return new_external_pop
 
 def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crossover_operator, mutation_operator, 
                 crossover_rate, mutation_rate, cal_fitness):
@@ -130,9 +139,10 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         # print("Generation {}: ".format(gen + 1), history_hv[-1])
 
         # print("Generation {}: Done".format(gen + 1))
-        for indi in nsga_ii_pop.ParetoFront[0]:
-            Pareto_store.append(list(indi.objectives))
-        history[gen + 1] = Pareto_store
+
+        Pareto_store = filter_external(nsga_ii_pop.ParetoFront[0])
+        
+        history[gen + 1] = [cal_fitness(problem, i) for i in Pareto_store]
     pool.close()
 
     # return history_hv[-1]
@@ -149,6 +159,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+    indi_list = [create_individual_pickup_lerk(graph) for _ in range(100)]
+    Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator_lerk, mutation_operator_lerk, 0.5, 0.1, calculate_fitness)
+    print(Pareto_store)
 
