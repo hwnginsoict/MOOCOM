@@ -41,7 +41,7 @@ def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100
     # 2) Run NSGA-II
 
     start_time_nsga2 = time.time()
-    nsga2_results = run_nsga_ii(4, graph, indi_list_lerk, num, max_gen, crossover_operator_lerk, mutation_operator_lerk, 0.5, 0.1, calculate_fitness)
+    nsga2_results = run_nsga_ii(4, graph, indi_list_lerk, num, max_gen, crossover_operator_lerk, mutation_operator_lerk, 0.5, 0.1, calculate_fitness_lerk)
     nsga2_time = time.time() - start_time_nsga2
     nsga2_results["time"] = nsga2_time
 
