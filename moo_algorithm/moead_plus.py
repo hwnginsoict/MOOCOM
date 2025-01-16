@@ -6,7 +6,6 @@ import numpy as np
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
-from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 def init_weight_vectors_2d(pop_size):
@@ -213,7 +212,8 @@ def run_moead_plus(processing_number, problem, indi_list, pop_size, max_gen, nei
 
 
 if __name__ == "__main__":
+    from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
     indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_moead_plus(4, graph, indi_list, 100, 100, 10, init_weight_vectors_3d_plus, crossover_operator,mutation_operator, calculate_fitness)
+    run_moead_plus(4, graph, indi_list, 100, 100, 10, init_weight_vectors_4d, crossover_operator,mutation_operator, calculate_fitness)

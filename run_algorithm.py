@@ -36,6 +36,8 @@ def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100
     pfg_time = time.time() - start_time_pfg
     pfg_results["time"] = pfg_time
 
+    # raise Exception("Stop here")
+
     # 2) Run NSGA-II
 
     start_time_nsga2 = time.time()

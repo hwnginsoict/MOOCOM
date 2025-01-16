@@ -7,7 +7,6 @@ import os
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population
-from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 def cal_knee_point(pop):
@@ -209,7 +208,7 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
 
         pop.ParetoFront[0] = filter_external(pop.ParetoFront[0])
 
-        history[gen] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
+        history[gen] = [cal_fitness(problem, i) for i in pop.ParetoFront[0]]
 
     pool.close()
 
@@ -225,6 +224,7 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
     return history
 
 if __name__ == "__main__":
+    from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
     graph = Graph(filepath)
