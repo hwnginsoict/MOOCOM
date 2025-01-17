@@ -157,10 +157,20 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     
 
 if __name__ == "__main__":
-    from utils import crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk, create_individual_pickup_lerk
+    from utils_original import crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk, create_individual_lerk
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup_lerk(graph) for _ in range(100)]
+    indi_list = [create_individual_lerk(graph) for _ in range(100)]
     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator_lerk, mutation_operator_lerk, 0.5, 0.1, calculate_fitness_lerk)
     print(Pareto_store)
+
+
+# if __name__ == "__main__":
+#     from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+#     graph = Graph(filepath)
+#     indi_list = [create_individual_pickup(graph) for _ in range(100)]
+#     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+#     print(Pareto_store)
+
 

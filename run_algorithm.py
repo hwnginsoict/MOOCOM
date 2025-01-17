@@ -4,7 +4,7 @@ from graph.graph import Graph
 import time
 from moo_algorithm.nsga_ii import run_nsga_ii
 from moo_algorithm.pfg_moea import run_pfgmoea
-from moo_algorithm.moead_plus import run_moead_plus, init_weight_vectors_3d_plus, init_weight_vectors_4d
+from moo_algorithm.moead_plus import run_moead_plus, init_weight_vectors_4d
 from moo_algorithm.moead_paper import run_moead
 from algorithm.fair_ga import FairGA
 import json

@@ -365,191 +365,111 @@ def mutation_operator(graph, individual, mutation_rate=0.1):
     return offspring
 
 
-def cost(graph, solution):
-    """
-    Tính các chỉ số:
-      1) total_distance  - tổng quãng đường của toàn bộ solution
-      2) vehicle_fairness - độ lệch bình phương trung bình về quãng đường giữa các xe
-      3) customer_fairness - độ lệch bình phương trung bình về trễ hạn khách hàng
+# def cost_energy(graph, solution):
+#     """
+#     Computes:
+#       1) total_energy    - total energy consumption of the entire solution (litres of fuel)
+#       2) vehicle_fairness - standard deviation of energy consumption among vehicles (km)
+#       3) customer_fairness - standard deviation of customer tardiness (minutes)
     
-    Args:
-        graph: đối tượng Graph (chứa self.dist, self.nodes, self.vehicle_speed, ...)
-        solution: list of routes, mỗi route là list các node [0, i1, i2, ..., 0] (giả sử 0 là depot)
+#     Args:
+#         graph: Graph object containing attributes like dist, nodes, 
+#                vehicle_speed, and energy-related parameters.
+#         solution: list of routes, each route is a list of nodes [0, i1, i2, ..., 0] 
+#                   (assuming 0 is depot)
     
-    Returns:
-        (total_distance, vehicle_fairness, customer_fairness)
-    """
+#     Returns:
+#         (total_energy, vehicle_fairness, customer_fairness)
+#     """
+
+#     # Extract energy-related constants from graph or define them here
+#     cd = graph.cd         # e.g., 0.7
+#     xi = graph.xi         # e.g., 1
+#     kappa = graph.kappa   # e.g., 44
+#     p = graph.p           # e.g., 1.2
+#     A = graph.A           # e.g., 3.192
+#     mk = graph.mk         # e.g., 3.2
+#     g = graph.g           # e.g., 9.81
+#     cr = graph.cr         # e.g., 0.01
+#     psi = graph.psi       # e.g., 737
+#     pi_val = graph.pi     # e.g., 0.2   (renamed to avoid conflict with math.pi)
+#     R = graph.R           # e.g., 165
+#     eta = graph.eta       # e.g., 0.36
+#     v_speed_km_h = 40
+#     v_speed_km_m = 0.6666666666666666
+
+#     total_energy = 0.0
+#     ve_energy = []   # list to store energy consumption per vehicle
+#     cus_tardiness = []  # list to store tardiness for each customer
+
+#     # Function to compute energy for a segment between two nodes
+#     def energy_for_leg(current_node, next_node, current_capacity):
+#         # Calculate distance between nodes
+#         d_ij = graph.dist[current_node][next_node]
+
+#         # Power consumption terms
+#         p_ij = 0.5 * cd * p * A * v_speed_km_h**3 + (mk + current_capacity) * g * cr * v_speed_km_h
+
+#         # Compute energy consumption L_ij using the provided formula
+#         # Here, we use the formula:
+#         # L_ij = xi/(kappa*psi) * (pi*R + p_ij/eta) * d_ij/v_speed
+#         L_ij = (xi / (kappa * psi)) * (pi_val * R + p_ij / eta) * (d_ij / v_speed_km_h)
+
+#         return L_ij, d_ij
+
+#     for route in solution:
+#         route_energy = 0.0
+#         current_capacity = 0.0
+#         time = 0.0  # to compute tardiness if needed
 
 
-    print("solution:", solution)
-    
-    total_distance = 0.0
-    ve_fair = []   # lưu quãng đường của từng vehicle (route)
-    cus_fair = []  # lưu độ trễ (tardiness) của từng khách hàng
-    
-    for route in solution:
-        route_distance = 0.0
-        time = 0.0
-        capacity = 0.0
+#         L_ij, d_ij = energy_for_leg(0, route[1], current_capacity)
+#         route_energy += L_ij
+#         travel_time = d_ij / v_speed_km_m
+#         time += travel_time
         
-        # Giả sử route = [depot, ..., depot] => tính khoảng cách từng cặp liên tiếp
-        for i in range(1,len(route) - 1): #skip first leader node
-            current_node = route[i]
-            next_node = route[i+1]
+#         # Process each leg in the route
+#         for i in range(1, len(route) - 1):
+#             current_node = route[i]
+#             next_node = route[i+1]
 
-            # if current_node == next_node:
-            #     raise Exception("Route has duplicate nodes: {}".format(route))
-            
-            # Cộng quãng đường giữa current_node -> next_node
-            dist_ij = graph.dist[current_node][next_node]
+#             # Compute energy and distance for this segment
+#             L_ij, d_ij = energy_for_leg(current_node, next_node, current_capacity)
+#             route_energy += L_ij
 
-            # if dist_ij > 100000000000:
-            #     print("graph size: ", graph.num_nodes)
-            #     raise Exception("Invalid distance: {} -> {}".format(current_node, next_node))
+#             # Travel time calculation
+#             travel_time = d_ij / v_speed_km_m
+#             time += travel_time
 
-            route_distance += dist_ij
-            
-            # Tính thời gian di chuyển
-            travel_time = dist_ij / graph.vehicle_speed
-            time += travel_time
-            
-            # Nếu next_node != 0 => đó là khách hàng thật (không phải depot)
-            if next_node != 0:
-                customer = graph.nodes[next_node]
-                
-                # Nếu đến sớm hơn ready_time, phải chờ => time = max(time, ready_time)
-                time = max(time, customer.ready_time)
-                
-                # Ở đây coi service_time = 0, nếu có thì cộng thêm
-                time += customer.service_time
-                
-                # Nếu trễ hơn due_time => cộng vào cus_fair
-                if time > customer.due_time:
-                    tardiness = time - customer.due_time
-                    cus_fair.append(tardiness)
-                else:
-                    cus_fair.append(0.0)
-        
-        # route_distance chính là quãng đường cho route này
-        ve_fair.append(route_distance)
-        total_distance += route_distance
-    
-    # vehicle_fairness = variance(ve_fair)
-    # customer_fairness = variance(cus_fair)
-
-    vehicle_fairness = standard_deviation(ve_fair)
-    customer_fairness = standard_deviation(cus_fair)
-    
-    return total_distance, vehicle_fairness, customer_fairness
+#             # If next_node is a customer (not depot), handle time windows and capacity updates
+#             if next_node != 0:
+#                 customer = graph.nodes[next_node]
+#                 # Wait if arriving early
+#                 time = max(time, customer.ready_time)
+#                 # Update capacity if needed (assuming pickup adds capacity for simplicity)
+#                 current_capacity += customer.demand  # adjust based on pickup/delivery logic
 
 
+#                 time += customer.service_time
 
+#                 # Check for tardiness and record
+#                 if time > customer.due_time:
+#                     tardiness = time - customer.due_time
+#                     cus_tardiness.append(tardiness)
+#                 else:
+#                     cus_tardiness.append(0.0)
 
-def cost_energy(graph, solution):
-    """
-    Computes:
-      1) total_energy    - total energy consumption of the entire solution (litres of fuel)
-      2) vehicle_fairness - standard deviation of energy consumption among vehicles (km)
-      3) customer_fairness - standard deviation of customer tardiness (minutes)
-    
-    Args:
-        graph: Graph object containing attributes like dist, nodes, 
-               vehicle_speed, and energy-related parameters.
-        solution: list of routes, each route is a list of nodes [0, i1, i2, ..., 0] 
-                  (assuming 0 is depot)
-    
-    Returns:
-        (total_energy, vehicle_fairness, customer_fairness)
-    """
+#         L_ij, d_ij = energy_for_leg(route[-1], 0, current_capacity)
+#         route_energy += L_ij
 
-    # Extract energy-related constants from graph or define them here
-    cd = graph.cd         # e.g., 0.7
-    xi = graph.xi         # e.g., 1
-    kappa = graph.kappa   # e.g., 44
-    p = graph.p           # e.g., 1.2
-    A = graph.A           # e.g., 3.192
-    mk = graph.mk         # e.g., 3.2
-    g = graph.g           # e.g., 9.81
-    cr = graph.cr         # e.g., 0.01
-    psi = graph.psi       # e.g., 737
-    pi_val = graph.pi     # e.g., 0.2   (renamed to avoid conflict with math.pi)
-    R = graph.R           # e.g., 165
-    eta = graph.eta       # e.g., 0.36
-    v_speed_km_h = 40
-    v_speed_km_m = 0.6666666666666666
+#         ve_energy.append(route_energy)
+#         total_energy += route_energy
 
-    total_energy = 0.0
-    ve_energy = []   # list to store energy consumption per vehicle
-    cus_tardiness = []  # list to store tardiness for each customer
+#     # Calculate fairness metrics using standard deviation
+#     vehicle_fairness = standard_deviation(ve_energy)
+#     customer_fairness = standard_deviation(cus_tardiness) if cus_tardiness else 0.0
 
-    # Function to compute energy for a segment between two nodes
-    def energy_for_leg(current_node, next_node, current_capacity):
-        # Calculate distance between nodes
-        d_ij = graph.dist[current_node][next_node]
-
-        # Power consumption terms
-        p_ij = 0.5 * cd * p * A * v_speed_km_h**3 + (mk + current_capacity) * g * cr * v_speed_km_h
-
-        # Compute energy consumption L_ij using the provided formula
-        # Here, we use the formula:
-        # L_ij = xi/(kappa*psi) * (pi*R + p_ij/eta) * d_ij/v_speed
-        L_ij = (xi / (kappa * psi)) * (pi_val * R + p_ij / eta) * (d_ij / v_speed_km_h)
-
-        return L_ij, d_ij
-
-    for route in solution:
-        route_energy = 0.0
-        current_capacity = 0.0
-        time = 0.0  # to compute tardiness if needed
-
-
-        L_ij, d_ij = energy_for_leg(0, route[1], current_capacity)
-        route_energy += L_ij
-        travel_time = d_ij / v_speed_km_m
-        time += travel_time
-        
-        # Process each leg in the route
-        for i in range(1, len(route) - 1):
-            current_node = route[i]
-            next_node = route[i+1]
-
-            # Compute energy and distance for this segment
-            L_ij, d_ij = energy_for_leg(current_node, next_node, current_capacity)
-            route_energy += L_ij
-
-            # Travel time calculation
-            travel_time = d_ij / v_speed_km_m
-            time += travel_time
-
-            # If next_node is a customer (not depot), handle time windows and capacity updates
-            if next_node != 0:
-                customer = graph.nodes[next_node]
-                # Wait if arriving early
-                time = max(time, customer.ready_time)
-                # Update capacity if needed (assuming pickup adds capacity for simplicity)
-                current_capacity += customer.demand  # adjust based on pickup/delivery logic
-
-
-                time += customer.service_time
-
-                # Check for tardiness and record
-                if time > customer.due_time:
-                    tardiness = time - customer.due_time
-                    cus_tardiness.append(tardiness)
-                else:
-                    cus_tardiness.append(0.0)
-
-        L_ij, d_ij = energy_for_leg(route[-1], 0, current_capacity)
-        route_energy += L_ij
-
-        ve_energy.append(route_energy)
-        total_energy += route_energy
-
-    # Calculate fairness metrics using standard deviation
-    vehicle_fairness = standard_deviation(ve_energy)
-    customer_fairness = standard_deviation(cus_tardiness) if cus_tardiness else 0.0
-
-    return total_energy, vehicle_fairness, customer_fairness
+#     return total_energy, vehicle_fairness, customer_fairness
 
 
 def cost_full(graph, solution):
@@ -622,6 +542,7 @@ def cost_full(graph, solution):
             route_energy += L_ij
             travel_time = d_ij / v_speed_km_m
             time += travel_time
+            current_capacity += graph.nodes[route[1]].demand
 
         # ----- Leg from first customer to intermediate, ... , until last -----
         for i in range(1, len(route) - 1):
@@ -670,9 +591,15 @@ def cost_full(graph, solution):
         if len(route) > 1:
             L_ij, d_ij = energy_for_leg(route[-1], 0, current_capacity)
             route_energy += L_ij
+            # current_capacity += graph.nodes[route[-1]].demand
 
         ve_energy.append(route_energy)
         total_energy += route_energy
+
+        # if current_capacity!=0:
+        #     print(current_capacity)
+        #     print("Route: ", route)
+        #     raise ValueError("Capacity not zero at the end of the route!")
 
     # Calculate vehicle_fairness
     vehicle_fairness = standard_deviation(ve_energy)

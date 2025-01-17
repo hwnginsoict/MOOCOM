@@ -73,7 +73,7 @@ if __name__ == "__main__":
     from utils import create_individual_pickup, crossover_operator, mutation_operator, calculate_fitness
     
     # Adjust as needed
-    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+    filepath = '.\\data\\dpdptw\\800\\LC1_8_1.csv'
     graph = Graph(filepath)
     np.random.seed(0)
     
@@ -126,7 +126,7 @@ if __name__ == "__main__":
     # -------------------------
     # 3) Run MOEA/D
     # -------------------------
-    
+
     # moead_paper_results = run_moead(
     #     4,
     #     graph,
