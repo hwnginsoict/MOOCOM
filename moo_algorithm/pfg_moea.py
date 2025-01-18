@@ -204,7 +204,7 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
         pop.indivs.extend(offspring)
         pop.natural_selection()
 
-        # print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
+        print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], np.array([20000, 2000, 2000, 2000]))/20000/2000/2000/2000)
 
         pop.ParetoFront[0] = filter_external(pop.ParetoFront[0])
 
@@ -223,11 +223,21 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
     # print(history)
     return history
 
+# if __name__ == "__main__":
+#     from utils import crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk, create_individual_pickup_lerk
+#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+#     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
+#     graph = Graph(filepath)
+#     indi_list = [create_individual_pickup_lerk(graph) for _ in range(100)]
+#     result = run_pfgmoea(4, graph, indi_list, 100, 100, 5, 0.01, crossover_operator_lerk, mutation_operator_lerk, 0.9, 0.1, calculate_fitness_lerk)
+#     print(result)
+
+
 if __name__ == "__main__":
-    from utils import crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk, create_individual_pickup_lerk
+    from LERK_utils import crossover_LERK, mutation_LERK, calculate_fitness_LERK, create_individual_LERK
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup_lerk(graph) for _ in range(50)]
-    result = run_pfgmoea(4, graph, indi_list, 50, 50, 5, 0.01, crossover_operator_lerk, mutation_operator_lerk, 0.9, 0.1, calculate_fitness_lerk)
+    indi_list = [create_individual_LERK(graph) for _ in range(100)]
+    result = run_pfgmoea(4, graph, indi_list, 100, 100, 5, 0.01, crossover_LERK, mutation_LERK, 0.9, 0.1, calculate_fitness_LERK)
     print(result)

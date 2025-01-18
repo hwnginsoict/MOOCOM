@@ -159,13 +159,13 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     return history
     
 
-if __name__ == "__main__":
-    from utils import crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk, create_individual_pickup_lerk
-    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-    graph = Graph(filepath)
-    indi_list = [create_individual_pickup_lerk(graph) for _ in range(100)]
-    Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator_lerk, mutation_operator_lerk, 0.5, 0.1, calculate_fitness_lerk)
-    print(Pareto_store)
+# if __name__ == "__main__":
+#     from utils import crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk, create_individual_pickup_lerk
+#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+#     graph = Graph(filepath)
+#     indi_list = [create_individual_pickup_lerk(graph) for _ in range(100)]
+#     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator_lerk, mutation_operator_lerk, 0.5, 0.1, calculate_fitness_lerk)
+#     print(Pareto_store)
 
 
 # if __name__ == "__main__":
@@ -175,5 +175,15 @@ if __name__ == "__main__":
 #     indi_list = [create_individual_pickup(graph) for _ in range(100)]
 #     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
 #     print(Pareto_store)
+
+
+if __name__ == "__main__":
+    from LERK_utils import crossover_LERK, mutation_LERK, calculate_fitness_LERK, create_individual_LERK
+    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+    # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
+    graph = Graph(filepath)
+    indi_list = [create_individual_LERK(graph) for _ in range(100)]
+    Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_LERK, mutation_LERK, 0.5, 0.1, calculate_fitness_LERK)
+    # print(Pareto_store)
 
 

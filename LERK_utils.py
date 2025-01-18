@@ -10,7 +10,7 @@ class Element:
         self.value = value
 
 
-def create_chromosome(graph: Graph):
+def create_chromosome_LERK(graph: Graph):
     chromosome = []
     for i in range(graph.vehicle_num - 1): #?????
         chromosome.append(Element(leader=True, id_request= None, value = np.random.uniform(0, 1)))
@@ -19,8 +19,9 @@ def create_chromosome(graph: Graph):
     return chromosome
 
 def decode_chromosome(graph: Graph, chromosome):
-    chromosome_copy = deepcopy(chromosome)
-    chromosome = sorted(chromosome_copy, key = lambda x: x.value)
+    # chromosome_copy = deepcopy(chromosome)
+    # chromosome = sorted(chromosome_copy, key = lambda x: x.value)
+    chromosome.sort(key = lambda x: x.value)
     solution = [[] for i in range(graph.vehicle_num)]
     i = 0
     for element in chromosome:
@@ -43,9 +44,9 @@ def decode_chromosome(graph: Graph, chromosome):
         id_solution[i] = [node.nid for node in node_solution[i]]
     return id_solution
 
-def create_individual(graph: Graph):
+def create_individual_LERK(graph: Graph):
     indi = Individual()
-    indi.chromosome = create_chromosome(graph)
+    indi.chromosome = create_chromosome_LERK(graph)
     return indi
 
 
@@ -99,7 +100,7 @@ from utils import cost_full
 from moo_algorithm.nsga_ii import run_nsga_ii
 
 
-def calculate_fitness_lerk(problem, individual):
+def calculate_fitness_LERK(problem, individual):
     route = decode_chromosome(problem, individual.chromosome)
     total_distance, vehicle_fairness, customer_fairness, max_time = cost_full(problem, route)
     individual.objectives = [total_distance, vehicle_fairness, customer_fairness, max_time]
@@ -111,6 +112,6 @@ if __name__ == "__main__":
     # print(chromosome)
     # print(chromosome)
     # print(decode_chromosome(graph, chromosome))
-    indi_list = [create_individual(graph) for _ in range(100)]
-    result = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_LERK, mutation_LERK, 0.5, 0.1, calculate_fitness_lerk)
+    indi_list = [create_individual_LERK(graph) for _ in range(100)]
+    result = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_LERK, mutation_LERK, 0.5, 0.1, calculate_fitness_LERK)
     print(result)
