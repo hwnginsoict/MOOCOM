@@ -314,6 +314,8 @@ def calculate_fitness_lerk(problem, individual):
     # 1) Giải mã từ random keys -> route (dạng một list duy nhất 
     #    có chèn sentinel >= problem.graph.num_nodes để đánh dấu chia tuyến)
     route = decode_solution_pickup(problem, individual.chromosome)
+
+    # print(route)
     
     # 2) Tính cost
     total_distance, vehicle_fairness, customer_fairness, max_time = cost_full(problem, route)

@@ -1,53 +1,71 @@
-
 from graph.graph import Graph
 import numpy as np
-from copy import deepcopy
 from population import Individual
+
 class Element:
-    def __init__(self, leader = None, id_request = None, value = None):
+    def __init__(self, leader=None, id_request=None, value=None):
         self.leader = leader
         self.id_request = id_request
         self.value = value
 
 
 def create_chromosome_LERK(graph: Graph):
-    chromosome = []
-    for i in range(graph.vehicle_num - 1): #?????
-        chromosome.append(Element(leader=True, id_request= None, value = np.random.uniform(0, 1)))
-    for i in range(graph.num_pickup_nodes):
-        chromosome.append(Element(leader=False, id_request=i, value = np.random.uniform(0, 1)))
+    # Insert some random uniform values
+    # For the "leader" elements, we do vehicle_num - 1
+    chromosome = [
+        Element(leader=True, id_request=None, value=np.random.rand())
+        for _ in range(graph.vehicle_num - 1)
+    ]
+    # For the requests
+    chromosome.extend(
+        Element(leader=False, id_request=i, value=np.random.rand())
+        for i in range(graph.num_pickup_nodes)
+    )
     return chromosome
 
-def decode_chromosome(graph: Graph, chromosome):
-    # chromosome_copy = deepcopy(chromosome)
-    # chromosome = sorted(chromosome_copy, key = lambda x: x.value)
-    chromosome.sort(key = lambda x: x.value)
-    solution = [[] for i in range(graph.vehicle_num)]
-    i = 0
-    for element in chromosome:
-        if element.leader:
-            i += 1
-        else:
-            solution[i].append(element.id_request)
-    node_solution = [[] for i in range(graph.vehicle_num)]
-    id_solution = [[i+1] for i in range(graph.vehicle_num)]
-    # for i in range(graph.vehicle_num):
-    #     id_solution[i].append(i+1)
-    for i in range(graph.vehicle_num):
-        for id_order in solution[i]:
-            id_request = graph.pickup_nodes[id_order].nid
-            pickup_node = graph.nodes[id_request]
-            delivery_node = graph.nodes[graph.nodes[id_request].did]
-            node_solution[i].append(pickup_node)
-            node_solution[i].append(delivery_node)
-        node_solution[i].sort(key =  lambda x: x.due_time)
-        id_solution[i] = [node.nid for node in node_solution[i]]
-    return id_solution
 
 def create_individual_LERK(graph: Graph):
     indi = Individual()
     indi.chromosome = create_chromosome_LERK(graph)
     return indi
+
+
+def decode_chromosome(graph: Graph, chromosome):
+    chromosome.sort(key=lambda x: x.value)
+    
+    routes = [[] for _ in range(graph.vehicle_num)]
+    curr_vehicle = 0
+    for element in chromosome:
+        if element.leader:
+            curr_vehicle += 1
+        else:
+            routes[curr_vehicle].append(element.id_request)
+    
+    id_solution = []
+    for v_idx, request_list in enumerate(routes, start=1):
+        route_nodes = []
+        # for id_req in request_list:
+        #     nid_pickup = graph.pickup_nodes[id_req].nid
+        #     pickup_node = graph.nodes[nid_pickup]
+        #     delivery_node = graph.nodes[pickup_node.did]
+        #     route_nodes.append(pickup_node)
+        #     route_nodes.append(delivery_node)
+        # route_nodes.sort(key=lambda x: x.due_time)
+
+        for id_req in request_list:
+            nid_pickup = graph.pickup_nodes[id_req].nid
+            # pickup_node = graph.nodes[nid_pickup]
+            # delivery_node = graph.nodes[pickup_node.did]
+            nid_delivery = graph.nodes[nid_pickup].did
+            route_nodes.append(nid_pickup)
+            route_nodes.append(nid_delivery)
+        route_nodes.sort(key=lambda x: graph.nodes[x].due_time)
+
+        # route_nids = [v_idx] + [node.nid for node in route_nodes]
+        route_nids = [v_idx] + route_nodes
+        id_solution.append(route_nids)
+
+    return id_solution
 
 
 def crossover_LERK(graph: Graph, indi1: Individual, indi2: Individual):
@@ -98,7 +116,6 @@ def mutation_LERK(graph: Graph, indi: Individual):
 
 from utils import cost_full
 from moo_algorithm.nsga_ii import run_nsga_ii
-
 
 def calculate_fitness_LERK(problem, individual):
     route = decode_chromosome(problem, individual.chromosome)

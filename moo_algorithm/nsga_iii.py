@@ -4,7 +4,6 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
 from population import Population, Individual
-from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 from graph.graph import Graph
 
 
@@ -30,7 +29,8 @@ def generate_reference_points(num_objs, num_divisions_per_obj=4):
     def gen_refs_recursive(work_point, num_objs, left, total, depth):
         if depth == num_objs - 1:
             work_point[depth] = left / total
-            ref = ReferencePoint(copy.deepcopy(work_point))
+            # ref = ReferencePoint(copy.deepcopy(work_point)) #@
+            ref = ReferencePoint(work_point)
             return [ref]
         else:
             res = []
@@ -52,7 +52,7 @@ def generate_reference_points(num_objs, num_divisions_per_obj=4):
 
 def find_ideal_point(indivs):
     m = len(indivs[0].objectives)
-    ideal_point = [np.infty]*m
+    ideal_point = [np.inf]*m
     for indi in indivs:
         for i in range(m):
             ideal_point[i] = min(ideal_point[i], indi.objectives[i])
@@ -295,9 +295,18 @@ def run_nsga_iii(processing_number, problem, indi_list, pop_size, max_gen, cross
         result.append(each.objectives)
     return result
 
+# if __name__ == "__main__":
+#     from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+#     graph = Graph(filepath)
+#     indi_list = [create_individual_pickup(graph) for _ in range(100)]
+#     run_nsga_iii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+
+
 if __name__ == "__main__":
+    from LERK_utils import crossover_LERK, mutation_LERK, calculate_fitness_LERK, create_individual_LERK
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    run_nsga_iii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+    indi_list = [create_individual_LERK(graph) for _ in range(100)]
+    run_nsga_iii(4, graph, indi_list, 100, 100, crossover_LERK, mutation_LERK, 0.5, 0.1, calculate_fitness_LERK)
 

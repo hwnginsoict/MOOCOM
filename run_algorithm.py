@@ -1,5 +1,6 @@
-from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
-from utils import create_individual_pickup_lerk, crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk
+# from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
+# from utils import create_individual_pickup_lerk, crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk
+from LERK_utils import crossover_LERK, mutation_LERK, calculate_fitness_LERK, create_individual_LERK
 from graph.graph import Graph
 import time
 from moo_algorithm.nsga_ii import run_nsga_ii
@@ -19,41 +20,42 @@ def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100
     #graph.num_vehicle = number*5
 
     graph = Graph(filepath)
-    indi_list_lerk = [create_individual_pickup_lerk(graph) for _ in range(num)]
-    indi_list = [create_individual_pickup(graph) for _ in range(num)]
+    # indi_list_lerk = [create_individual_pickup_lerk(graph) for _ in range(num)]
+    # indi_list = [create_individual_pickup(graph) for _ in range(num)]
+    indi_list_lerk = [create_individual_LERK(graph) for _ in range(num)]
 
     np.random.seed(seed)
 
     # 3) Run PFG-EMOA
 
-    start_time_proposed = time.time()
-    proposed_results = run_pfgmoea(4, graph, indi_list, num, max_gen, 5, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)
-    proposed_time = time.time() - start_time_proposed
-    proposed_results["time"] = proposed_time
+    # start_time_proposed = time.time()
+    # proposed_results = run_pfgmoea(4, graph, indi_list, num, max_gen, 5, 0.01, crossover_operator, mutation_operator, 0.9, 0.1, calculate_fitness)
+    # proposed_time = time.time() - start_time_proposed
+    # proposed_results["time"] = proposed_time
 
-    start_time_pfg = time.time()
-    pfg_results = run_pfgmoea(4, graph, indi_list_lerk, num, max_gen, 5, 0.01, crossover_operator_lerk, mutation_operator_lerk, 0.9, 0.1, calculate_fitness_lerk)
-    pfg_time = time.time() - start_time_pfg
-    pfg_results["time"] = pfg_time
+    # start_time_pfg = time.time()
+    # pfg_results = run_pfgmoea(4, graph, indi_list_lerk, num, max_gen, 5, 0.01, crossover_operator_lerk, mutation_operator_lerk, 0.9, 0.1, calculate_fitness_lerk)
+    # pfg_time = time.time() - start_time_pfg
+    # pfg_results["time"] = pfg_time
 
     # raise Exception("Stop here")
 
     # 2) Run NSGA-II
 
     start_time_nsga2 = time.time()
-    nsga2_results = run_nsga_ii(4, graph, indi_list_lerk, num, max_gen, crossover_operator_lerk, mutation_operator_lerk, 0.5, 0.1, calculate_fitness_lerk)
+    nsga2_results = run_nsga_ii(4, graph, indi_list_lerk, num, max_gen, crossover_LERK, mutation_LERK, 0.5, 0.1, calculate_fitness_LERK)
     nsga2_time = time.time() - start_time_nsga2
     nsga2_results["time"] = nsga2_time
 
     # raise Exception("Stop here")
 
     start_time_moead_plus = time.time()
-    moead_plus_results = run_moead_plus(4, graph, indi_list_lerk, num, max_gen, 10, init_weight_vectors_4d, crossover_operator_lerk, mutation_operator_lerk, calculate_fitness_lerk)
+    moead_plus_results = run_moead_plus(4, graph, indi_list_lerk, num, max_gen, 5, init_weight_vectors_4d, crossover_LERK, mutation_LERK, calculate_fitness_LERK)
     moead_plus_time = time.time() - start_time_moead_plus
     moead_plus_results["time"] = moead_plus_time
 
     start_time_moead_paper = time.time()
-    moead_paper_results = run_moead(4, graph, indi_list_lerk, num, max_gen, 10, init_weight_vectors_4d, crossover_operator_lerk, mutation_operator_lerk, 0.1 , calculate_fitness_lerk)
+    moead_paper_results = run_moead(4, graph, indi_list_lerk, num, max_gen, 5, init_weight_vectors_4d, crossover_LERK, mutation_LERK, 0.1 , calculate_fitness_LERK)
     moead_paper_time = time.time() - start_time_moead_paper
     moead_paper_results["time"] = moead_paper_time
 
@@ -61,8 +63,8 @@ def main(number = 8, type = "LC2", index = 1, seed = 0, num = 100, max_gen = 100
     
     # 4) Combine and store both results in the same JSON
     final_results = {
-        "Proposed": proposed_results,
-        "PFG-EMOA": pfg_results,
+        # "Proposed": proposed_results,
+        # "PFG-EMOA": pfg_results,
         "NSGA-II": nsga2_results,
         "MOEA/D+": moead_plus_results,
         "MOEA/D": moead_paper_results
