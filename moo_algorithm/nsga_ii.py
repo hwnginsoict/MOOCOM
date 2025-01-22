@@ -111,7 +111,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     for individual, fitness in zip(nsga_ii_pop.indivs, result):
         individual.objectives = fitness
 
-    print("Cal fitness done")
+    # print("Cal fitness done")
 
     history_hv = []
     nsga_ii_pop.natural_selection()
@@ -134,14 +134,14 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         Pareto_store = []
         offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
         # print("Done gen off")
-        print("Tạo cá thể xong")
+        # print("Tạo cá thể xong")
         arg = []
         for individual in offspring:
             arg.append((problem, individual))
         result = pool.starmap(cal_fitness, arg)
         for individual, fitness in zip(offspring, result):
             individual.objectives = fitness
-        print("Tính fitness xong")
+        # print("Tính fitness xong")
         nsga_ii_pop.indivs.extend(offspring)
         nsga_ii_pop.natural_selection()
         history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
@@ -181,22 +181,22 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
 #     print(Pareto_store)
 
 
-if __name__ == "__main__":
-    from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
-    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-    graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
-    print(Pareto_store)
-
-
 # if __name__ == "__main__":
-#     from LERK_utils import crossover_LERK, mutation_LERK, calculate_fitness_LERK, create_individual_LERK
+#     from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
 #     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-#     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
 #     graph = Graph(filepath)
-#     indi_list = [create_individual_LERK(graph) for _ in range(100)]
-#     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_LERK, mutation_LERK, 0.5, 0.1, calculate_fitness_LERK)
-    # print(Pareto_store)
+#     indi_list = [create_individual_pickup(graph) for _ in range(100)]
+#     Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_operator, mutation_operator, 0.5, 0.1, calculate_fitness)
+#     print(Pareto_store)
+
+
+if __name__ == "__main__":
+    from LERK_utils import crossover_LERK, mutation_LERK, calculate_fitness_LERK, create_individual_LERK
+    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
+    # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
+    graph = Graph(filepath)
+    indi_list = [create_individual_LERK(graph) for _ in range(100)]
+    Pareto_store = run_nsga_ii(4, graph, indi_list, 100, 100, crossover_LERK, mutation_LERK, 0.5, 0.1, calculate_fitness_LERK)
+    print(Pareto_store)
 
 
