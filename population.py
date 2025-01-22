@@ -24,7 +24,8 @@ class Individual:
             or_condition = or_condition or (first < second - tolerance)
         return and_condition and or_condition
     
-    
+
+import time 
 
 class Population:
     def __init__(self, pop_size):
@@ -40,6 +41,7 @@ class Population:
         offspring = []
         for i in range(self.pop_size):
             parent1, parent2 = np.random.choice(self.indivs, 2, replace = False)
+            time_start = time.time()
             if np.random.rand() < crossover_rate:
                 off1, off2 = crossover_operator(problem, parent1, parent2)
             else:
@@ -49,6 +51,7 @@ class Population:
                 off2 = mutation_operator(problem, off2)
             offspring.append(off1)
             offspring.append(off2)
+            print("Pop_time: ", time.time() - time_start)
         return offspring
     
         

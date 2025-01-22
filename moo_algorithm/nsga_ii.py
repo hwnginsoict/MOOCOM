@@ -2,6 +2,7 @@ import multiprocessing
 import sys
 import os
 import numpy as np
+import time
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
@@ -131,10 +132,11 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
 
 
     for gen in range(max_gen):
-        Pareto_store = []
+        print("Bắt đầu gen")
+        time_start = time.time()
         offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
         # print("Done gen off")
-        print("Tạo cá thể xong")
+        print("Tạo cá thể xong:", time.time() - time_start)
         arg = []
         for individual in offspring:
             arg.append((problem, individual))
@@ -158,6 +160,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         for indi in nsga_ii_pop.ParetoFront[0]:
             Pareto_store.append(list(indi.objectives))
         history[gen+1] = Pareto_store
+        print("Lưu cá thể")
     pool.close()
 
     # return history_hv[-1]
