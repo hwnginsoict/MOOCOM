@@ -67,51 +67,76 @@ def decode_chromosome(graph: Graph, chromosome):
 
     return id_solution
 
+from copy import deepcopy
+import time
 
 def crossover_LERK(graph: Graph, indi1: Individual, indi2: Individual):
+    # time_start = time.time()
     off1 = Individual()
     off2 = Individual()
-    off1.chromosome = []
-    off2.chromosome = []
 
-    # SBX crossover
-    eta = 2
-    u = np.random.rand()
-    if u <= 0.5:
-        beta = (2 * u) ** (1 / (eta + 1))
-    else:
-        beta = (1 / (2 * (1 - u))) ** (1 / (eta + 1))
-    for i in range(len(indi1.chromosome)):
-        off1.chromosome.append(Element(leader = indi1.chromosome[i].leader, id_request = indi1.chromosome[i].id_request, value = 0.5 * ((1 + beta) * indi1.chromosome[i].value + (1 - beta) * indi2.chromosome[i].value)))
-        off2.chromosome.append(Element(leader = indi2.chromosome[i].leader, id_request = indi2.chromosome[i].id_request, value = 0.5 * ((1 + beta) * indi2.chromosome[i].value + (1 - beta) * indi1.chromosome[i].value)))
-    
-    for i in range(len(off1.chromosome)):
-        if off1.chromosome[i].value > 1:
-            off1.chromosome[i].value = 1
-        if off1.chromosome[i].value < 0:
-            off1.chromosome[i].value = 0
-        if off2.chromosome[i].value > 1:
-            off2.chromosome[i].value = 1
-        if off2.chromosome[i].value < 0:
-            off2.chromosome[i].value = 0
+    chromosome1 = deepcopy(indi1.chromosome)
+    chromosome2 = deepcopy(indi2.chromosome)
+
+    position = np.random.randint(0, len(indi1.chromosome))
+    off1.chromosome = chromosome1[:position] + chromosome2[position:]
+    off2.chromosome = chromosome2[:position] + chromosome1[position:]
+    # off1.chromosome = deepcopy(indi1.chromosome)
+    # off2.chromosome = deepcopy(indi2.chromosome)
+
+    # # SBX crossover
+    # eta = 20
+    # u = np.random.rand()
+    # if u <= 0.5:
+    #     beta = (2 * u) ** (1 / (eta + 1))
+    # else:
+    #     beta = (1 / (2 * (1 - u))) ** (1 / (eta + 1))
+    # for i in range(len(indi1.chromosome)):
+    #     # off1.chromosome.append(Element(leader = indi1.chromosome[i].leader, id_request = indi1.chromosome[i].id_request, value = 0.5 * ((1 + beta) * indi1.chromosome[i].value + (1 - beta) * indi2.chromosome[i].value)))
+    #     # off2.chromosome.append(Element(leader = indi2.chromosome[i].leader, id_request = indi2.chromosome[i].id_request, value = 0.5 * ((1 + beta) * indi2.chromosome[i].value + (1 - beta) * indi1.chromosome[i].value)))
+    #     off1.chromosome[i].value = 0.5 * ((1 + beta) * indi1.chromosome[i].value + (1 - beta) * indi2.chromosome[i].value)
+    #     off2.chromosome[i].value = 0.5 * ((1 + beta) * indi2.chromosome[i].value + (1 - beta) * indi1.chromosome[i].value) 
+    # # for i in range(len(off1.chromosome)):
+    #     if off1.chromosome[i].value > 1:
+    #         off1.chromosome[i].value = 1
+    #     if off1.chromosome[i].value < 0:
+    #         off1.chromosome[i].value = 0
+    #     if off2.chromosome[i].value > 1:
+    #         off2.chromosome[i].value = 1
+    #     if off2.chromosome[i].value < 0:
+    #         off2.chromosome[i].value = 0
+    # # print("Gen xong 1 ca the:", time.time() - time_start)
     return off1, off2
 
 def mutation_LERK(graph: Graph, indi: Individual):
     off = Individual()
-    eta = 2
-    off.chromosome = []
-    for i in range(len(indi.chromosome)):
-        u = np.random.rand()
-        if u <= 0.5:
-            delta = (2 * u) ** (1 / (eta + 1)) - 1
-        else:
-            delta = 1 - (2 * (1 - u)) ** (1 / (eta + 1))
-        off.chromosome.append(Element(leader = indi.chromosome[i].leader, id_request = indi.chromosome[i].id_request, value = indi.chromosome[i].value + delta))
-    for i in range(len(off.chromosome)):
-        if off.chromosome[i].value > 1:
-            off.chromosome[i].value = 1
-        if off.chromosome[i].value < 0:
-            off.chromosome[i].value = 0
+    eta = 20
+    off.chromosome = deepcopy(indi.chromosome)
+    # for i in range(len(indi.chromosome)):
+    #     u = np.random.rand()
+    #     if u <= 0.5:
+    #         delta = (2 * u) ** (1 / (eta + 1)) - 1
+    #     else:
+    #         delta = 1 - (2 * (1 - u)) ** (1 / (eta + 1))
+    #     # off.chromosome.append(Element(leader = indi.chromosome[i].leader, id_request = indi.chromosome[i].id_request, value = indi.chromosome[i].value + delta))
+    #     off.chromosome[i].value = indi.chromosome[i].value + delta
+    # # for i in range(len(off.chromosome)):
+    #     if off.chromosome[i].value > 1:
+    #         off.chromosome[i].value = 1
+    #     if off.chromosome[i].value < 0:
+    #         off.chromosome[i].value = 0
+
+    u = np.random.rand()
+    if u <= 0.5:
+        delta = (2 * u) ** (1 / (eta + 1)) - 1
+    else:
+        delta = 1 - (2 * (1 - u)) ** (1 / (eta + 1))
+    position = np.random.randint(0, len(indi.chromosome))
+    off.chromosome[position].value = off.chromosome[position].value + delta
+    if off.chromosome[position].value > 1:
+        off.chromosome[position].value = 1
+    if off.chromosome[position].value < 0:
+        off.chromosome[position].value = 0
     return off
 
 from utils import cost_full
