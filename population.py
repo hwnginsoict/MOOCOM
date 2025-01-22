@@ -51,7 +51,7 @@ class Population:
                 off2 = mutation_operator(problem, off2)
             offspring.append(off1)
             offspring.append(off2)
-            print("Pop_time: ", time.time() - time_start)
+            # print("Pop_time: ", time.time() - time_start)
         return offspring
     
         
