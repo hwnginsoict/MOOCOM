@@ -112,7 +112,6 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         individual.objectives = fitness
 
     # print("Cal fitness done")
-
     history_hv = []
     nsga_ii_pop.natural_selection()
     history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
@@ -129,7 +128,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     for gen in range(max_gen):
         Pareto_store = []
         offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
-        # print("Done gen off")
+        print("Done gen off")
         arg = []
         for individual in offspring:
             arg.append((problem, individual))
