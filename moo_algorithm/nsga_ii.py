@@ -111,7 +111,8 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     for individual, fitness in zip(nsga_ii_pop.indivs, result):
         individual.objectives = fitness
 
-    # print("Cal fitness done")
+    print("Cal fitness done")
+
     history_hv = []
     nsga_ii_pop.natural_selection()
     history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
@@ -119,6 +120,10 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     # print("Generation 0: ", history_hv[-1])
     # print("Generation 0: Done")
 
+    # Pareto_store = []
+    # for indi in nsga_ii_pop.ParetoFront[0]:
+    #     Pareto_store.append(list(indi.objectives))
+    # history[0] = Pareto_store
     Pareto_store = []
     for indi in nsga_ii_pop.ParetoFront[0]:
         Pareto_store.append(list(indi.objectives))
@@ -128,24 +133,31 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     for gen in range(max_gen):
         Pareto_store = []
         offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
-        print("Done gen off")
+        # print("Done gen off")
+        print("Tạo cá thể xong")
         arg = []
         for individual in offspring:
             arg.append((problem, individual))
         result = pool.starmap(cal_fitness, arg)
         for individual, fitness in zip(offspring, result):
             individual.objectives = fitness
+        print("Tính fitness xong")
         nsga_ii_pop.indivs.extend(offspring)
         nsga_ii_pop.natural_selection()
         history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
 
         # print("Generation {}: ".format(gen + 1), history_hv[-1])
 
-        # print("Generation {}: Done".format(gen + 1))
+        print("Generation {}: Done".format(gen + 1))
 
-        Pareto_store = filter_external(nsga_ii_pop.ParetoFront[0])
+        # Pareto_store = filter_external(nsga_ii_pop.ParetoFront[0])
         
-        history[gen + 1] = [cal_fitness(problem, i) for i in Pareto_store]
+        # history[gen + 1] = [cal_fitness(problem, i) for i in Pareto_store]
+        # print("Lưu cá thể")
+        Pareto_store = []
+        for indi in nsga_ii_pop.ParetoFront[0]:
+            Pareto_store.append(list(indi.objectives))
+        history[gen+1] = Pareto_store
     pool.close()
 
     # return history_hv[-1]
