@@ -132,7 +132,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
 
 
     for gen in range(max_gen):
-        print("Bắt đầu gen")
+        # print("Bắt đầu gen")
         time_start = time.time()
         offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
         # print("Done gen off")
@@ -150,7 +150,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
 
         # print("Generation {}: ".format(gen + 1), history_hv[-1])
 
-        print("Generation {}: Done".format(gen + 1))
+        # print("Generation {}: Done".format(gen + 1))
 
         # Pareto_store = filter_external(nsga_ii_pop.ParetoFront[0])
         
@@ -160,7 +160,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         for indi in nsga_ii_pop.ParetoFront[0]:
             Pareto_store.append(list(indi.objectives))
         history[gen+1] = Pareto_store
-        print("Lưu cá thể")
+        # print("Lưu cá thể")
     pool.close()
 
     # return history_hv[-1]
