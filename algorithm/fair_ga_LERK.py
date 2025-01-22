@@ -5,9 +5,8 @@ import sys
 import os
 # Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
-
-from utils_new import create_individual_pickup, calculate_fitness, crossover_operator, mutation_operator
 from population import Population
+from LERK_utils import create_individual_LERK, calculate_fitness_LERK, crossover_LERK, mutation_LERK
 
 def rank_population(graph, population, rank_type="total_distance"):
     """
@@ -20,7 +19,7 @@ def rank_population(graph, population, rank_type="total_distance"):
     # Tính fitness trước
     for indiv in population.indivs:
         if not indiv.objectives:  # nếu chưa có objectives
-            calculate_fitness(graph, indiv)
+            calculate_fitness_LERK(graph, indiv)
     # Sort theo objective 0 (giả sử total_distance) - ascending
 
     if rank_type == "total_distance":
@@ -87,12 +86,12 @@ def FairGA(graph, indi_list, max_iteration=100,population_size=30,cross_size=10,
     
     # Đánh giá fitness ban đầu
     for indiv in population.indivs:
-        calculate_fitness(graph, indiv)
+        calculate_fitness_LERK(graph, indiv)
     
     Sbest = None
     iteration = 0
 
-    while iteration < max_iteration+1:
+    while iteration < max_iteration:
         # (3) rank(S, probability)
         rank_population(graph, population, rank_type="total_distance")
         
@@ -103,7 +102,7 @@ def FairGA(graph, indi_list, max_iteration=100,population_size=30,cross_size=10,
         # print(decode_solution_pickup(graph, current_best.chromosome))
         # raise Exception
     
-        # print(f"Iteration {iteration}, {current_best.objectives}")
+        # print(f"Iteration {iteration}, {current_best.objectives[0]}, {current_best.objectives[1]}, {current_best.objectives[2]}")
         
         if Sbest is None or current_best.objectives[0] < Sbest.objectives[0]:
             Sbest = copy.deepcopy(current_best)
@@ -148,7 +147,7 @@ def FairGA(graph, indi_list, max_iteration=100,population_size=30,cross_size=10,
             if len(SmO) > 0 and len(SfA) > 0:
                 p1 = random.choice(SmO)
                 p2 = random.choice(SfA)
-                child1, child2 = crossover_operator(graph, p1, p2)
+                child1, child2 = crossover_LERK(graph, p1, p2)
                 
                 # Ta có thể chọn 1 child hoặc cả 2 child. 
                 # Demo: chọn child1 để đưa vào new_population
@@ -157,7 +156,7 @@ def FairGA(graph, indi_list, max_iteration=100,population_size=30,cross_size=10,
                     local_optimization(graph, child1)
                 
                 # Tính fitness cho child1
-                calculate_fitness(graph, child1)
+                calculate_fitness_LERK(graph, child1)
                 
                 # (21) new_population thêm child1
                 new_population.indivs.append(child1)
@@ -166,25 +165,25 @@ def FairGA(graph, indi_list, max_iteration=100,population_size=30,cross_size=10,
                 if len(new_population.indivs) < population_size:
                     if random.random() > localRate:
                         local_optimization(graph, child2)
-                    calculate_fitness(graph, child2)
+                    calculate_fitness_LERK(graph, child2)
                     new_population.indivs.append(child2)
             
         # (23) Mutate(mutateRate, S)
         # new_population còn thiếu => ta bổ sung cho đủ population_size
         while len(new_population.indivs) < population_size:
-            new_population.indivs.append(create_individual_pickup(graph))
+            new_population.indivs.append(create_individual_LERK(graph))
 
         # Đột biến trên new_population (trừ elites nếu bạn muốn)
         for idx in range(num_elites, len(new_population.indivs)):
-            new_population.indivs[idx] = mutation_operator(graph, new_population.indivs[idx], mutation_rate=mutateRate)
-            calculate_fitness(graph, new_population.indivs[idx])
+            new_population.indivs[idx] = mutation_LERK(graph, new_population.indivs[idx], mutation_rate=mutateRate)
+            calculate_fitness_LERK(graph, new_population.indivs[idx])
 
         # Cập nhật population = new_population
         population = new_population
         
         iteration += 1
 
-    return Sbest.objectives
+    return Sbest
 
 
 # Test FairGA
@@ -193,7 +192,6 @@ from graph.graph import Graph
 if __name__ == "__main__":
     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
     graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
+    indi_list = [create_individual_LERK(graph) for _ in range(100)]
     graph = Graph(filepath)
-    Sbest = FairGA(graph, indi_list, max_iteration=100, population_size=100, cross_size=30, localRate=0.3, mutateRate=0.1, elitistRate=0.1, crossRate=0.5)
-    print(Sbest)
+    Sbest = FairGA(graph, indi_list, max_iteration=100, population_size=100, cross_size=10, localRate=0.3, mutateRate=0.1, elitistRate=0.1, crossRate=0.5)
