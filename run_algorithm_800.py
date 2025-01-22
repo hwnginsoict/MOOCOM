@@ -117,20 +117,20 @@ if __name__ == "__main__":
     #             main(number=num, type=t, index=i, seed=args.seed, num=100, max_gen=args.maxgen)
     #             print(f"Done {num}_{t}_{i}")
 
-    for num in [8]:
-        for t in args.type:
-            for i in range(10, 3, -1):
-                # We pass args.max_gen instead of the hard-coded 150
-                main(number=num, type=t, index=i, seed=args.seed, num=100, max_gen=args.maxgen)
-                print(f"Done {num}_{t}_{i}")
-
-
     # for num in [8]:
-    #     for t in ["LC1"]:
-    #         for i in range(8, 11):
+    #     for t in args.type:
+    #         for i in range(10, 3, -1):
     #             # We pass args.max_gen instead of the hard-coded 150
     #             main(number=num, type=t, index=i, seed=args.seed, num=100, max_gen=args.maxgen)
     #             print(f"Done {num}_{t}_{i}")
+
+
+    for num in [8]:
+        for t in ["LC1"]:
+            for i in range(8, 11):
+                # We pass args.max_gen instead of the hard-coded 150
+                main(number=num, type=t, index=i, seed=args.seed, num=100, max_gen=args.maxgen)
+                print(f"Done {num}_{t}_{i}")
 
     # for num in [8]:
     #     for t in ["LR1"]:
