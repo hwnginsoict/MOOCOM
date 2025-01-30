@@ -325,6 +325,18 @@ def swap_mutation(permutation, mutation_rate):
             perm[i], perm[j] = perm[j], perm[i]
     return perm
 
+def change_mutation(permutation, mutation_rate):
+    """
+    Change mutation cho permutation:
+    Với xác suất mutation_rate, chọn 1 vị trí ngẫu nhiên và đổi chỗ với 1 vị trí khác.
+    """
+    perm = permutation.copy()
+    for i in range(len(perm)):
+        if np.random.rand() < mutation_rate:
+            j = np.random.randint(0, len(perm))
+            perm[i], perm[j] = perm[j], perm[i]
+    return perm
+
 
 def scramble_mutation(permutation, mutation_rate):
     perm = permutation.copy()
