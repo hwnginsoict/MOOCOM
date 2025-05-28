@@ -199,11 +199,20 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     return history
 
 if __name__ == "__main__":
-    from utils_new import crossover_operator, mutation_operator, calculate_fitness, create_individual_pickup
-    filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-    graph = Graph(filepath)
-    indi_list = [create_individual_pickup(graph) for _ in range(100)]
-    result = run_moead(4, graph, indi_list, 100, 50, 10, init_weight_vectors_4d, crossover_operator, mutation_operator, 
-              0.1, calculate_fitness)
+    from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+
+    num = 1
+    size = 50
+    data = GetData(num,size)
+    problems = data.generate_instances()
+
+    hv_list = []
+
+    ref_point = np.array([35, 35])
+
+    for problem in problems:
+        indi_list = [create_individual(size) for _ in range(100)]
+        result = run_moead(4, problem, indi_list, 100, 50, 10, init_weight_vectors_4d, crossover, mutation, 
+                0.1, tour_cost)
     print(result)
  

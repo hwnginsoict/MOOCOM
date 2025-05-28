@@ -47,8 +47,8 @@ class Population:
             else:
                 off1, off2 = deepcopy(parent1), deepcopy(parent2)
             if np.random.rand() < mutation_rate:
-                off1 = mutation_operator(problem, off1)
-                off2 = mutation_operator(problem, off2)
+                off1 = mutation_operator(off1)
+                off2 = mutation_operator(off2)
             offspring.append(off1)
             offspring.append(off2)
             # print("Pop_time: ", time.time() - time_start)
