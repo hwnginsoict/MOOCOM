@@ -167,12 +167,12 @@ if __name__ == "__main__":
     ref_point = np.array([35, 35])
 
     for problem in problems:
-        indi_list = [create_individual(size) for _ in range(100)]
-        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 100, 100, crossover, mutation, 0.5, 0.1, tour_cost)
+        indi_list = [create_individual(size) for _ in range(300)]
+        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost)
         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
         hv_list.append(hv)
         print(hv)
-    
+    print("HV LIST", hv_list)
     print("AVG HV: ", sum(hv_list)/len(hv_list))
 
 
