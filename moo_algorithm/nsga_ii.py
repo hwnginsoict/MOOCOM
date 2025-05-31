@@ -163,6 +163,7 @@ if __name__ == "__main__":
     hv_list = []
 
     ref_point = np.array([20, 20])
+    print(ref_point)
 
     for problem in problems:
         indi_list = [create_individual(size) for _ in range(300)]
