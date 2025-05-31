@@ -145,26 +145,24 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         history[gen+1] = Pareto_store
         # print("Lưu cá thể")
 
-        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([35, 35]))/(35*35))
+        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([20, 20]))/(20*20))
     # print(Pareto_store)
-    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([35, 35]))/(35*35))
+    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([20, 20]))/(20*20))
     pool.close()
     return nsga_ii_pop.ParetoFront[0]
     
-
-
 
 if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
     num = 20
-    size = 50
+    size = 20
     data = GetData(num,size)
     problems = data.generate_instances()
 
     hv_list = []
 
-    ref_point = np.array([35, 35])
+    ref_point = np.array([20, 20])
 
     for problem in problems:
         indi_list = [create_individual(size) for _ in range(300)]
@@ -174,5 +172,28 @@ if __name__ == "__main__":
         print(hv)
     print("HV LIST", hv_list)
     print("AVG HV: ", sum(hv_list)/len(hv_list))
+
+
+
+# if __name__ == "__main__":
+#     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+
+#     num = 20
+#     size = 50
+#     data = GetData(num,size)
+#     problems = data.generate_instances()
+
+#     hv_list = []
+
+#     ref_point = np.array([35, 35])
+
+#     for problem in problems:
+#         indi_list = [create_individual(size) for _ in range(300)]
+#         Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost)
+#         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
+#         hv_list.append(hv)
+#         print(hv)
+#     print("HV LIST", hv_list)
+#     print("AVG HV: ", sum(hv_list)/len(hv_list))
 
 
