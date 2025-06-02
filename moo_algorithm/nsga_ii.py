@@ -98,7 +98,7 @@ def filter_external(pareto):
     return new_external_pop
 
 def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crossover_operator, mutation_operator, 
-                crossover_rate, mutation_rate, cal_fitness):
+                crossover_rate, mutation_rate, cal_fitness, ref_point):
     history = {}
     nsga_ii_pop = NSGAIIPopulation(pop_size)
     nsga_ii_pop.pre_indi_gen(indi_list)
@@ -145,9 +145,9 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         history[gen+1] = Pareto_store
         # print("Lưu cá thể")
 
-        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([20, 20]))/(20*20))
+        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point) / np.prod(ref_point ))
     # print(Pareto_store)
-    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([20, 20]))/(20*20))
+    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / np.prod(ref_point))
     pool.close()
     return nsga_ii_pop.ParetoFront[0]
     
@@ -156,18 +156,20 @@ if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
     num = 20
-    size = 20
+
+    size = 100
+    ref_point = np.array([65, 65])
+
     data = GetData(num,size)
     problems = data.generate_instances()
 
     hv_list = []
 
-    ref_point = np.array([20, 20])
     print(ref_point)
 
     for problem in problems:
-        indi_list = [create_individual(size) for _ in range(1000)]
-        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 1000, 1000, crossover, mutation, 0.5, 0.1, tour_cost)
+        indi_list = [create_individual(size) for _ in range(300)]
+        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
         hv_list.append(hv)
         print(hv)
