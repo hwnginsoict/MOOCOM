@@ -160,7 +160,7 @@ if __name__ == "__main__":
     num = 20
 
     size = 100
-    ref_point = np.array([65, 65])
+    ref_point = np.array([65, 65,65])
 
     data = GetData(num,size)
     problems = data.generate_instances()

@@ -138,7 +138,7 @@ def crossover(instance, p1, p2):
     c1 = Individual(np.array(child1))
     c2 = Individual(np.array(child2))
 
-    c1 = lin_kernighan(instance, c1)
+    # c1 = lin_kernighan(instance, c1)
     # c2 = lin_kernighan(instance, c2)
 
     return c1, c2
