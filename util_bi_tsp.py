@@ -26,10 +26,17 @@ def tour_cost(instance, route):
 
     cost_1 = 0
     cost_2 = 0
+
+    # print(instance)
     
     for j in range(problem_size - 1):
         node1, node2 = int(solution[j]), int(solution[j + 1])
         
+        # print(node1, node2)
+        # print(instance)
+        # print(instance[node1])
+        # print(instance[node2])
+
         coord_1_node1, coord_2_node1 = instance[node1][:2], instance[node1][2:]
         coord_1_node2, coord_2_node2 = instance[node2][:2], instance[node2][2:]
 
