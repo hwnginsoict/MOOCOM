@@ -155,12 +155,14 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
 if __name__ == "__main__":
     from util_tri_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
-    print("tri moi")
 
     num = 20
 
-    size = 100
-    ref_point = np.array([65, 65,65])
+    size = 50
+    ref_point = np.array([35, 35,35])
+
+    print("tri moi")
+    print(ref_point)
 
     data = GetData(num,size)
     problems = data.generate_instances()
