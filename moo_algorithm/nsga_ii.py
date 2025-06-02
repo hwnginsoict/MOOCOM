@@ -153,7 +153,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     
 
 if __name__ == "__main__":
-    from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+    from util_tri_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
     num = 20
 
