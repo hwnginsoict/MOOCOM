@@ -151,7 +151,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     pool.close()
     return nsga_ii_pop.ParetoFront[0]
     
-
+import json
 if __name__ == "__main__":
     from util_tri_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
@@ -159,9 +159,9 @@ if __name__ == "__main__":
     num = 20
 
     size = 50
-    ref_point = np.array([35, 35,35])
+    ref_point = np.array([35, 35])
 
-    print("tri moi")
+    print("bi tsp 50")
     print(ref_point)
 
     data = GetData(num,size)
@@ -171,12 +171,36 @@ if __name__ == "__main__":
 
     print(ref_point)
 
+    obj_json = []
+
     for problem in problems:
         indi_list = [create_individual(size) for _ in range(300)]
         Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
         hv_list.append(hv)
         print(hv)
+
+        temp = []
+        for indi in Pareto_store:
+            temp.append(indi.objectives)
+        obj_json.append(temp)
+
+
+    def convert_to_serializable(obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, list):
+            return [convert_to_serializable(i) for i in obj]
+        else:
+            return obj
+
+    # Prepare the data
+    serializable_obj_json = convert_to_serializable(obj_json)
+
+    # Save to JSON
+    with open("pareto_objectives.json", "w") as f:
+        json.dump(serializable_obj_json, f, indent=2)
+
     print("HV LIST", hv_list)
     print("AVG HV: ", sum(hv_list)/len(hv_list))
 
