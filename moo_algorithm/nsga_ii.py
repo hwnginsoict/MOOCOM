@@ -177,7 +177,7 @@ if __name__ == "__main__":
     for problem in problems:
         start = time.time()
         indi_list = [create_individual(size) for _ in range(300)]
-        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 10, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
+        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
         end = time.time()
         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
         hv_list.append(hv)
