@@ -151,7 +151,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     pool.close()
     return nsga_ii_pop.ParetoFront[0]
     
-import json
+import json, time
 if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
@@ -168,22 +168,28 @@ if __name__ == "__main__":
     problems = data.generate_instances()
 
     hv_list = []
+    time_list = []
 
     print(ref_point)
 
     obj_json = []
 
     for problem in problems:
+        start = time.time()
         indi_list = [create_individual(size) for _ in range(300)]
         Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
+        end = time.time()
         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
         hv_list.append(hv)
+        tim = end - start
+        time_list.append(tim)
         print(hv)
+        print(time)
 
         temp = []
         for indi in Pareto_store:
             temp.append(indi.objectives)
-        obj_json.append(temp)
+        obj_json.append(filter_external(temp))
 
 
     def convert_to_serializable(obj):
@@ -203,6 +209,7 @@ if __name__ == "__main__":
 
     print("HV LIST", hv_list)
     print("AVG HV: ", sum(hv_list)/len(hv_list))
+    print("AVG TIME", sum(time_list)/len(time_list))
 
 
 
