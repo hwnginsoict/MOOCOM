@@ -183,8 +183,10 @@ if __name__ == "__main__":
         hv_list.append(hv)
         tim = end - start
         time_list.append(tim)
+
         print(hv)
-        print(time)
+        print(tim)
+        print(len(Pareto_store))
 
         temp = []
         for indi in Pareto_store:
