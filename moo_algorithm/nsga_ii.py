@@ -149,7 +149,7 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
     # print(Pareto_store)
     print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / np.prod(ref_point))
     pool.close()
-    return nsga_ii_pop.ParetoFront[0]
+    return filter_external(nsga_ii_pop.ParetoFront[0])
     
 import json, time
 if __name__ == "__main__":
@@ -177,7 +177,7 @@ if __name__ == "__main__":
     for problem in problems:
         start = time.time()
         indi_list = [create_individual(size) for _ in range(300)]
-        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
+        Pareto_store = run_nsga_ii(4, problem[0], indi_list, 300, 10, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
         end = time.time()
         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
         hv_list.append(hv)
@@ -189,7 +189,9 @@ if __name__ == "__main__":
         temp = []
         for indi in Pareto_store:
             temp.append(indi.objectives)
-        obj_json.append(filter_external(temp))
+        # obj_json.append(filter_external(temp))
+        obj_json.append(temp)
+
 
 
     def convert_to_serializable(obj):
