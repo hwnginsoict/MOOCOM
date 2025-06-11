@@ -158,10 +158,10 @@ if __name__ == "__main__":
 
     num = 20
 
-    size = 50
-    ref_point = np.array([35, 35])
+    size = 20
+    ref_point = np.array([20, 20])
 
-    print("bi tsp 50")
+    print("bi tsp 20")
     print(ref_point)
 
     data = GetData(num,size)

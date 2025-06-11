@@ -1,75 +1,16 @@
-import numpy as np
-import random
-from copy import deepcopy
 import multiprocessing
 import sys
 import os
+import numpy as np
+import time
+# Add the parent directory to the module search path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/..")
 from moo_algorithm.metric import cal_hv_front
-from population import Population
+from population import Population, Individual
 from graph.graph import Graph
+from pymoo.indicators.hv import HV 
 
-def cal_knee_point(pop):
-    knee_point = np.zeros(len(pop.indivs[0].objectives))
-    m = len(pop.indivs[0].objectives)
-    for i in range(m):
-        knee_point[i] = 1e9
-    for indi in pop.indivs:
-        for i in range(m):
-            knee_point[i] = min(knee_point[i], indi.objectives[i])
-    return knee_point
-
-
-def cal_nadir_point(pop):
-    m = len(pop.indivs[0].objectives)
-    nadir_point = np.zeros(m)
-    for i in range(m):
-        nadir_point[i] = -1e9
-    for indi in pop.indivs:
-        for i in range(m):
-            nadir_point[i] = max(nadir_point[i], indi.objectives[i])
-
-    SP = random.sample(pop.indivs, int(len(pop.indivs)/3))
-    NDS_SP = NonDominatedSort(SP)
-    for indi in NDS_SP: 
-        for i in range(m):
-            nadir_point[i] = max(nadir_point[i], indi.objectives[i])
-    return nadir_point
-
-def NonDominatedSort(SP):
-    SP_copy = deepcopy(SP)
-    ParetoFront = []
-    for individual in SP_copy:
-        individual.domination_count = 0
-        individual.dominated_solutions = []
-        for other_individual in SP_copy:
-            if individual.dominates(other_individual):
-                individual.dominated_solutions.append(other_individual)
-            elif other_individual.dominates(individual):
-                individual.domination_count +=1
-        if individual.domination_count ==0:
-            individual.rank = 0
-            ParetoFront.append(individual)
-    return ParetoFront
-
-def Generation_PFG(pop, GK, knee_point, nadir_point, sigma):
-    
-    d = [(nadir_point[j] - knee_point[j] + 2*sigma) / GK for j in range(len(knee_point))]
-    Grid = []
-    for indi in pop.indivs:
-        grid_indi = [(indi.objectives[j] - knee_point[j] + sigma) // d[j] for j in range(len(knee_point))]
-        Grid.append(grid_indi)
-    PFG = [[[] for _ in range(GK)] for _ in range(len(knee_point))]
-
-    for idx, indi in enumerate(pop.indivs):
-        for j in range(2):
-            grid_value = int(Grid[idx][j])
-            if 0 <= grid_value < GK:
-                PFG[j][grid_value].append(indi)
-    return PFG
-
-
-class PFGMOEAPopulation(Population):
+class NSGAIIPopulation(Population):
     def __init__(self, pop_size):
         super().__init__(pop_size)
         self.ParetoFront = []
@@ -85,7 +26,6 @@ class PFGMOEAPopulation(Population):
                     individual.dominated_solutions.append(other_individual)
                 elif other_individual.dominates(individual):
                     individual.domination_count += 1
-                    # break
             if individual.domination_count == 0:
                 individual.rank = 0
                 ParetoFront[0].append(individual)
@@ -157,84 +97,68 @@ def filter_external(pareto):
             objectives.add(tuple(indi.objectives))
     return new_external_pop
 
-
-def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, sigma, crossover_operator, mutation_operator, 
-            crossover_rate, mutation_rate, cal_fitness, ref_point):
-    pop = PFGMOEAPopulation(pop_size)
-    pop.pre_indi_gen(indi_list)
+def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crossover_operator, mutation_operator, 
+                crossover_rate, mutation_rate, cal_fitness, ref_point):
+    history = {}
+    nsga_ii_pop = NSGAIIPopulation(pop_size)
+    nsga_ii_pop.pre_indi_gen(indi_list)
 
     pool = multiprocessing.Pool(processing_number)
     arg = []
-    for individual in pop.indivs:
+    for individual in nsga_ii_pop.indivs:
         arg.append((problem, individual))
     result = pool.starmap(cal_fitness, arg)
-    for individual, fitness in zip(pop.indivs, result):
+    for individual, fitness in zip(nsga_ii_pop.indivs, result):
         individual.objectives = fitness
 
-    pop.natural_selection()
-    # print("Generation 0: ", cal_hv_front(pop.ParetoFront[0], np.array([1, 1, 1])))
+    history_hv = []
+    nsga_ii_pop.natural_selection()
+    # history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
 
-    history = {}
-    # history[0] = [calculate_fitness(problem, i) for i in pop.ParetoFront[0]]
+    Pareto_store = []
+    for indi in nsga_ii_pop.ParetoFront[0]:
+        Pareto_store.append(list(indi.objectives))
+    history[0] = Pareto_store
 
-    for gen in range(max_gen+1):
-        # print(1)
-        knee_point = cal_knee_point(pop)
-        nadir_point = cal_nadir_point(pop)
-        PFG = Generation_PFG(pop, GK, knee_point, nadir_point, sigma)
-        offspring = []
 
-        for j in range(len(knee_point)):
-            for i in range(GK - 1):
-                if len(PFG[j][i]) > 1:
-                    for indi in PFG[j][i]:
-                        if (random.random() < crossover_rate) and (len(PFG[j][i+ 1]) >1):
-                            other_indi = random.choice(PFG[j][i + 1])
-                            off1, off2 = crossover_operator(problem, indi, other_indi)
-                            if random.random() < mutation_rate:
-                                off1 = mutation_operator(off1)
-                                off2 = mutation_operator(off2)
-                            offspring.append(off1)
-                            offspring.append(off2)
-
+    for gen in range(max_gen):
+        # print("Bắt đầu gen")
+        time_start = time.time()
+        offspring = nsga_ii_pop.gen_offspring(problem, crossover_operator, mutation_operator, crossover_rate, mutation_rate)
+        # print("Done gen off")
+        # print("Tạo cá thể xong")
         arg = []
         for individual in offspring:
             arg.append((problem, individual))
         result = pool.starmap(cal_fitness, arg)
         for individual, fitness in zip(offspring, result):
             individual.objectives = fitness
-        pop.indivs.extend(offspring)
-        pop.natural_selection()
+        # print("Tính fitness xong")
+        nsga_ii_pop.indivs.extend(offspring)
+        nsga_ii_pop.natural_selection()
+        # history_hv.append(cal_hv_front(nsga_ii_pop.ParetoFront[0], np.array([1, 1, 1])))
 
-        print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], ref_point=ref_point) / np.prod(ref_point))
+       
+        Pareto_store = []
+        for indi in nsga_ii_pop.ParetoFront[0]:
+            Pareto_store.append(list(indi.objectives))
+        history[gen+1] = Pareto_store
+        # print("Lưu cá thể")
 
-        pop.ParetoFront[0] = filter_external(pop.ParetoFront[0])
-
-        history[gen] = [cal_fitness(problem, i) for i in pop.ParetoFront[0]]
-
+        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point) / np.prod(ref_point))
+    # print(Pareto_store)
+    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / np.prod(ref_point))
     pool.close()
-
-    # return pop.ParetoFront[0]
-
-    # result = []
-    # for each in pop.ParetoFront[0]:
-    #     result.append(each.objectives)
-    #     print(each.objectives)
-    # return result
-
-    # print(history)
-    return pop.ParetoFront[0]
-
-
-import time, json
-
-if __name__ == "__main__":
-    from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+    return filter_external(nsga_ii_pop.ParetoFront[0])
     
-    num = 20
+import json, time
+if __name__ == "__main__":
+    from util_bi_cvrp import GetData, crossover, mutation, tour_cost, create_individual
 
+    num = 8
     size = 50
-    ref_point = np.array([35, 35])
+
+    ref_point = np.array([45, 8])
 
     print("bi tsp 50")
     print(ref_point)
@@ -251,16 +175,24 @@ if __name__ == "__main__":
 
     for problem in problems:
         start = time.time()
-        indi_list = [create_individual(size) for _ in range(300)]
-        pareto_store = run_pfgmoea(4, problem[0], indi_list, 300, 300, 5, 0.01, crossover, mutation, 0.9, 0.1, tour_cost, ref_point)
-        end  = time.time()
-        time_list.append(end - start)
+        indi_list = [create_individual(problem, size) for _ in range(300)]
+        Pareto_store = run_nsga_ii(4, problem, indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
+        end = time.time()
+        hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
+        hv_list.append(hv)
+        tim = end - start
+        time_list.append(tim)
+
+        print(hv)
+        print(tim)
+        print(len(Pareto_store))
 
         temp = []
-
-        for indi in pareto_store:
+        for indi in Pareto_store:
             temp.append(indi.objectives)
+        # obj_json.append(filter_external(temp))
         obj_json.append(temp)
+
 
 
     def convert_to_serializable(obj):
@@ -281,13 +213,3 @@ if __name__ == "__main__":
     print("HV LIST", hv_list)
     print("AVG HV: ", sum(hv_list)/len(hv_list))
     print("AVG TIME", sum(time_list)/len(time_list))
-
-
-# if __name__ == "__main__":
-#     from LERK_utils import crossover_LERK, mutation_LERK, calculate_fitness_LERK, create_individual_LERK
-#     filepath = '.\\data\\dpdptw\\200\\LC1_2_1.csv'
-#     # filepath = '.\\data\\dpdptw\\400\\LC1_4_1.csv'
-#     graph = Graph(filepath)
-#     indi_list = [create_individual_LERK(graph) for _ in range(100)]
-#     result = run_pfgmoea(4, graph, indi_list, 100, 100, 5, 0.01, crossover_LERK, mutation_LERK, 0.9, 0.1, calculate_fitness_LERK)
-#     print(result)
