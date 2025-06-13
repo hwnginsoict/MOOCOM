@@ -206,11 +206,13 @@ if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
     num = 20
-    size = 50
+
+
+    size = 50 #doi
     data = GetData(num,size)
     problems = data.generate_instances()
 
-    ref_point = np.array([35, 35])
+    ref_point = np.array([35, 35]) #doi
 
     hv_list = []
     time_list = []
