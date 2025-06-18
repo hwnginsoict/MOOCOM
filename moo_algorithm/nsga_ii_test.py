@@ -145,9 +145,9 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         history[gen+1] = Pareto_store
         # print("Lưu cá thể")
 
-        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point) / 25 /25)
+        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point) / 45 /45)
     # print(Pareto_store)
-    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / 25 /25)
+    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / 45 /45)
     pool.close()
     return filter_external(nsga_ii_pop.ParetoFront[0])
     
@@ -155,12 +155,12 @@ import json, time
 if __name__ == "__main__":
     from util_bi_kp import GetData, crossover, mutation, tour_cost, create_individual
 
-    num = 20
+    num = 8
     size = 50
 
     ref_point = np.array([-5, -5])
 
-    print("bi tsp 50")
+    print("bi kp 50")
     print(ref_point)
 
     data = GetData(num,size)

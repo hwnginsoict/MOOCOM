@@ -63,7 +63,7 @@ def crossover(instance, p1, p2):
     
     return Individual(child1), Individual(child2)
 
-def mutation(indi, mutation_rate=0.05):
+def mutation(problem, indi, mutation_rate=0.05):
     """
     Đột biến bằng cách lật một số bit với xác suất mutation_rate.
     """

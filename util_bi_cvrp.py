@@ -38,12 +38,13 @@ class GetData():
 def compute_route_length(route: np.ndarray, distance_matrix: np.ndarray) -> float:
     if len(route) <= 1:
         return 0.0
-    return sum(distance_matrix[route[i], route[i+1]] for i in range(len(route)-1))
+    return sum(distance_matrix[route[i], route[i+1]] for i in range(len(route)-1)) + distance_matrix[0,route[0]] + distance_matrix[0, route[-1]]
 
 
 def tour_cost(instance, ind):
 
     routes = ind.chromosome
+    # print(routes)
     distance_matrix = instance[2]
     
     total_distance = 0.0
@@ -53,6 +54,24 @@ def tour_cost(instance, ind):
         total_distance += d
         longest_route = max(longest_route, d)
     return total_distance, longest_route 
+
+
+# def tour_cost(instance, ind):
+#     routes = ind.chromosome
+#     distance_matrix = instance[2]
+
+#     total_distance = 0.0
+#     longest_route = 0.0
+
+#     for route in routes:
+#         if not route:
+#             continue  # skip empty routes
+#         full_route = [0] + route + [0]  # Add depot at start and end
+#         d = compute_route_length(full_route, distance_matrix)
+#         total_distance += d
+#         longest_route = max(longest_route, d)
+
+    return total_distance, longest_route
 
 
 def create_individual(instance, n_cities):
@@ -81,6 +100,7 @@ def create_individual(instance, n_cities):
             routes[idx].append(city)
             route_loads[idx] += demand  # May violate capacity
 
+    # print(routes)
     return Individual(routes)
 
 def flatten_routes(routes):

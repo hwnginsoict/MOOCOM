@@ -146,6 +146,8 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         # print("Lưu cá thể")
 
         print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point) / np.prod(ref_point))
+        # for i in nsga_ii_pop.ParetoFront[0]:
+        #     print(i.chromosome)
     # print(Pareto_store)
     print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / np.prod(ref_point))
     pool.close()
@@ -156,9 +158,9 @@ if __name__ == "__main__":
     from util_bi_cvrp import GetData, crossover, mutation, tour_cost, create_individual
 
     num = 8
-    size = 100
+    size = 20
 
-    ref_point = np.array([80, 8])
+    ref_point = np.array([30, 8])
 
     print("bi tsp 100")
     print(ref_point)
