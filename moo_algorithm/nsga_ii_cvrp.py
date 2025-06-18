@@ -162,7 +162,7 @@ if __name__ == "__main__":
 
     ref_point = np.array([30, 8])
 
-    print("bi tsp 20")
+    print("bi cvro 20")
     print(ref_point)
 
     data = GetData(num,size)
