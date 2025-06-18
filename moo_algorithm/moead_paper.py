@@ -200,32 +200,83 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     # print(history)
     # return history
 
-import time
+# import time
 
+# if __name__ == "__main__":
+#     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+
+#     num = 20
+
+
+#     size = 50 #doi
+#     data = GetData(num,size)
+#     problems = data.generate_instances()
+
+#     ref_point = np.array([35, 35]) #doi
+
+#     hv_list = []
+#     time_list = []
+
+#     for problem in problems:
+#         time_start = time.time()
+#         indi_list = [create_individual(size) for _ in range(500)]
+#         result = run_moead(4, problem[0], indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
+#                 0.1, tour_cost, ref_point)
+#         time_end = time.time()
+#         time_list.append(time_end - time_start)
+#         hv_list.append(result)
+
+#     print("AVG", sum(hv_list)/len(hv_list))
+#     print("AVG TIME", sum(time_list)/len(time_list))
+ 
+
+import time, json
 if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
-    num = 20
-
-
-    size = 50 #doi
+    num = 1
+    size = 50
     data = GetData(num,size)
     problems = data.generate_instances()
 
-    ref_point = np.array([35, 35]) #doi
+    ref_point = np.array([35, 35])
 
     hv_list = []
     time_list = []
 
-    for problem in problems:
-        time_start = time.time()
-        indi_list = [create_individual(size) for _ in range(500)]
-        result = run_moead(4, problem[0], indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
-                0.1, tour_cost, ref_point)
-        time_end = time.time()
-        time_list.append(time_end - time_start)
-        hv_list.append(result)
+    print(ref_point)
 
-    print("AVG", sum(hv_list)/len(hv_list))
+    obj_json = []
+    
+    for problem in problems:
+        start = time.time()
+        indi_list = [create_individual(size) for _ in range(500)]
+        pareto_store = run_moead(4, problem[0], indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
+                0.1, tour_cost, ref_point)
+        end = time.time()
+        time_list.append(end - start)
+
+        temp = []
+
+        for indi in pareto_store:
+            temp.append(indi.objectives)
+        obj_json.append(temp)
+
+    def convert_to_serializable(obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, list):
+            return [convert_to_serializable(i) for i in obj]
+        else:
+            return obj
+
+    # Prepare the data
+    serializable_obj_json = convert_to_serializable(obj_json)
+
+    # Save to JSON
+    with open("pareto_objectives.json", "w") as f:
+        json.dump(serializable_obj_json, f, indent=2)
+
+    print("HV LIST", hv_list)
+    print("AVG HV: ", sum(hv_list)/len(hv_list))
     print("AVG TIME", sum(time_list)/len(time_list))
- 
