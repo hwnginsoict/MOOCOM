@@ -158,11 +158,11 @@ if __name__ == "__main__":
     from util_bi_cvrp import GetData, crossover, mutation, tour_cost, create_individual
 
     num = 8
-    size = 20
+    size = 50
 
-    ref_point = np.array([30, 8])
+    ref_point = np.array([45, 8])
 
-    print("bi cvro 20")
+    print("bi cvrp 50")
     print(ref_point)
 
     data = GetData(num,size)
