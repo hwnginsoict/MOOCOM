@@ -56,7 +56,7 @@ def tour_cost(instance, ind):
 
 
 def create_individual(instance, n_cities):
-    n_vehicles = np.random.randint(6, 15)
+    n_vehicles = np.random.randint(10, 20)
     vehicle_capacity = instance[3]
     demands = instance[1]
 
