@@ -138,6 +138,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     return moead_pop.external_pop
 
 
+import time, json
 if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
@@ -146,12 +147,45 @@ if __name__ == "__main__":
     data = GetData(num,size)
     problems = data.generate_instances()
 
-    hv_list = []
-
     ref_point = np.array([35, 35])
+
+    hv_list = []
+    time_list = []
+
+    print(ref_point)
+
+    obj_json = []
     
     for problem in problems:
+        start = time.time()
         indi_list = [create_individual(size) for _ in range(100)]
-        run_moead(4, problem, indi_list, 100, 50, 3, init_weight_vectors_3d, crossover, tour_cost)
+        pareto_store = run_moead(4, problem, indi_list, 100, 50, 3, init_weight_vectors_3d, crossover, tour_cost)
+        end = time.time()
+        time_list.append(end - start)
+
+        temp = []
+
+        for indi in pareto_store:
+            temp.append(indi.objectives)
+        obj_json.append(temp)
+
+    def convert_to_serializable(obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, list):
+            return [convert_to_serializable(i) for i in obj]
+        else:
+            return obj
+
+    # Prepare the data
+    serializable_obj_json = convert_to_serializable(obj_json)
+
+    # Save to JSON
+    with open("pareto_objectives.json", "w") as f:
+        json.dump(serializable_obj_json, f, indent=2)
+
+    print("HV LIST", hv_list)
+    print("AVG HV: ", sum(hv_list)/len(hv_list))
+    print("AVG TIME", sum(time_list)/len(time_list))
  
 
