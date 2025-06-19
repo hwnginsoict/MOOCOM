@@ -159,7 +159,7 @@ def filter_external(pareto):
 
 
 def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, sigma, crossover_operator, mutation_operator, 
-            crossover_rate, mutation_rate, cal_fitness, ref_point):
+            crossover_rate, mutation_rate, cal_fitness, ref_point, scale):
     pop = PFGMOEAPopulation(pop_size)
     pop.pre_indi_gen(indi_list)
 
@@ -192,8 +192,8 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
                             other_indi = random.choice(PFG[j][i + 1])
                             off1, off2 = crossover_operator(problem, indi, other_indi)
                             if random.random() < mutation_rate:
-                                off1 = mutation_operator(off1)
-                                off2 = mutation_operator(off2)
+                                off1 = mutation_operator(problem,off1)
+                                off2 = mutation_operator(problem,off2)
                             offspring.append(off1)
                             offspring.append(off2)
 
@@ -206,7 +206,7 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
         pop.indivs.extend(offspring)
         pop.natural_selection()
 
-        print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], ref_point=ref_point) / np.prod(ref_point))
+        print("Generation {}: ".format(gen + 1), cal_hv_front(pop.ParetoFront[0], ref_point=ref_point) / scale)
 
         pop.ParetoFront[0] = filter_external(pop.ParetoFront[0])
 
@@ -232,7 +232,7 @@ if __name__ == "__main__":
     from util_bi_kp import GetData, crossover, mutation, tour_cost, create_individual
     
     num = 8
-    size = 50
+    size = 200
 
     if size == 50:
         ref_point = np.array([-5, -5])
@@ -259,8 +259,8 @@ if __name__ == "__main__":
 
     for problem in problems:
         start = time.time()
-        indi_list = [create_individual(size) for _ in range(300)]
-        pareto_store = run_pfgmoea(4, problem[0], indi_list, 300, 300, 5, 0.01, crossover, mutation, 0.9, 0.1, tour_cost, ref_point, scale)
+        indi_list = [create_individual(problem,size) for _ in range(300)]
+        pareto_store = run_pfgmoea(4, problem, indi_list, 300, 300, 5, 0.01, crossover, mutation, 0.9, 0.1, tour_cost, ref_point, scale)
         end  = time.time()
         time_list.append(end - start)
         hv_list.append(cal_hv_front(pareto_store, ref_point) / scale)
