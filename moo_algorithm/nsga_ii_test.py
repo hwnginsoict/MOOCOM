@@ -168,7 +168,7 @@ if __name__ == "__main__":
         ref_point = np.array([-30, -30])
         scale = 45*45
 
-    print("bi kp 50")
+    print("bi kp 100")
     print(ref_point)
 
     data = GetData(num,size)
