@@ -183,14 +183,14 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     pool.close()
 
     print("Last:",  cal_hv_front(moead_pop.external_pop, ref_point)/scale)
-    return cal_hv_front(moead_pop.external_pop, ref_point)/scale
+    # return cal_hv_front(moead_pop.external_pop, ref_point)/scale
 
     # for i in moead_pop.external_pop:
     #     print(i.objectives)
 
 
     # return cal_hv_front(moead_pop.external_pop, np.array([1, 1, 1]))
-    # return moead_pop.external_pop
+    return moead_pop.external_pop
 
     # list = []
     # for i in moead_pop.external_pop:
@@ -200,7 +200,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
     # print(history)
     # return history
 
-import time
+import time, json
 
 if __name__ == "__main__":
     from util_bi_kp import GetData, crossover, mutation, tour_cost, create_individual
@@ -228,14 +228,37 @@ if __name__ == "__main__":
     hv_list = []
     time_list = []
 
+    obj_json = []
+
     for problem in problems:
         time_start = time.time()
         indi_list = [create_individual(problem,size) for _ in range(500)]
-        result = run_moead(4, problem, indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
+        Pareto_store = run_moead(4, problem, indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
                 0.1, tour_cost, ref_point, scale)
         time_end = time.time()
         time_list.append(time_end - time_start)
-        hv_list.append(result)
+        hv_list.append(cal_hv_front(Pareto_store, ref_point) / scale)
+
+        temp = []
+        for indi in Pareto_store:
+            temp.append(indi.objectives)
+        # obj_json.append(filter_external(temp))
+        obj_json.append(temp)
+
+    def convert_to_serializable(obj):
+        if isinstance(obj, np.ndarray):
+            return obj.tolist()
+        elif isinstance(obj, list):
+            return [convert_to_serializable(i) for i in obj]
+        else:
+            return obj
+
+    # Prepare the data
+    serializable_obj_json = convert_to_serializable(obj_json)
+
+    # Save to JSON
+    with open("pareto_objectives.json", "w") as f:
+        json.dump(serializable_obj_json, f, indent=2)
 
     print("AVG", sum(hv_list)/len(hv_list))
     print("AVG TIME", sum(time_list)/len(time_list))
