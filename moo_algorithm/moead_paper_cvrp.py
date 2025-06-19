@@ -263,7 +263,8 @@ if __name__ == "__main__":
                 0.1, tour_cost, ref_point)
         end = time.time()
         time_list.append(end - start)
-
+        hv = cal_hv_front(pareto_store, ref_point) / np.prod(ref_point)
+        hv_list.append(hv)
         temp = []
 
         for indi in pareto_store:
