@@ -232,7 +232,7 @@ if __name__ == "__main__":
     from util_bi_kp import GetData, crossover, mutation, tour_cost, create_individual
     
     num = 8
-    size = 100
+    size = 50
 
     if size == 50:
         ref_point = np.array([-5, -5])
