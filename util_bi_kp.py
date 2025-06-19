@@ -37,12 +37,13 @@ def tour_cost(instance, route):
     return cost(route.chromosome, weight_lst, value1_lst, value2_lst, capacity)
 
 
-def create_individual(n_items):
+def create_individual(instance, n_items):
     """
     Tạo một cá thể ngẫu nhiên cho bài toán knapsack.
     Mỗi gene là 0 hoặc 1, đại diện cho việc không chọn hoặc chọn một vật phẩm.
     """
     individual = [random.randint(0, 1) for _ in range(n_items)]
+    individual = repair_solution(instance[0], instance[3], np.array(individual))
     return Individual(individual)
 
 def crossover(instance, p1, p2):
@@ -58,8 +59,13 @@ def crossover(instance, p1, p2):
     cut = random.randint(1, size - 1)
     
     # Tạo con bằng cách kết hợp phần đầu của parent1 với phần cuối của parent2 và ngược lại
-    child1 = parent1[:cut] + parent2[cut:]
-    child2 = parent2[:cut] + parent1[cut:]
+    # print(parent1, parent2, cut)
+    # print(type(parent1), type(parent2))
+    child1 = np.concatenate((parent1[:cut], parent2[cut:]))
+    child2 = np.concatenate((parent2[:cut], parent1[cut:]))
+
+    child1 = repair_solution(instance[0], instance[3], np.array(child1))
+    child2 = repair_solution(instance[0], instance[3], np.array(child2))    
     
     return Individual(child1), Individual(child2)
 
@@ -71,4 +77,13 @@ def mutation(problem, indi, mutation_rate=0.05):
     for i in range(len(chromosome)):
         if random.random() < mutation_rate:
             chromosome[i] = 1 - chromosome[i]  # Flip bit
+    
+    chromosome = repair_solution(problem[0], problem[3], np.array(chromosome))
     return Individual(chromosome)
+
+
+def repair_solution(weight_lst, capacity, solution):
+    while np.sum(solution * weight_lst) > capacity:
+        idx = np.random.choice(np.where(solution == 1)[0])  # Chọn ngẫu nhiên một vật phẩm đã chọn
+        solution[idx] = 0  # Bỏ chọn vật phẩm đó
+    return solution

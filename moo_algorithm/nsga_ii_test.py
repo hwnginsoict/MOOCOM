@@ -98,7 +98,7 @@ def filter_external(pareto):
     return new_external_pop
 
 def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crossover_operator, mutation_operator, 
-                crossover_rate, mutation_rate, cal_fitness, ref_point):
+                crossover_rate, mutation_rate, cal_fitness, ref_point, scale):
     history = {}
     nsga_ii_pop = NSGAIIPopulation(pop_size)
     nsga_ii_pop.pre_indi_gen(indi_list)
@@ -145,9 +145,9 @@ def run_nsga_ii(processing_number, problem, indi_list, pop_size, max_gen, crosso
         history[gen+1] = Pareto_store
         # print("Lưu cá thể")
 
-        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point) / 45 /45)
+        print(gen, cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point) / scale)
     # print(Pareto_store)
-    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / 45 /45)
+    print(cal_hv_front(nsga_ii_pop.ParetoFront[0], ref_point=ref_point) / scale)
     pool.close()
     return filter_external(nsga_ii_pop.ParetoFront[0])
     
@@ -158,7 +158,15 @@ if __name__ == "__main__":
     num = 8
     size = 50
 
-    ref_point = np.array([-5, -5])
+    if size == 50:
+        ref_point = np.array([-5, -5])
+        scale = 25*25
+    elif size == 100:   
+        ref_point = np.array([-20, -20])
+        scale = 30*30
+    elif size == 200:
+        ref_point = np.array([-30, -30])
+        scale = 45*45
 
     print("bi kp 50")
     print(ref_point)
@@ -175,8 +183,8 @@ if __name__ == "__main__":
 
     for problem in problems:
         start = time.time()
-        indi_list = [create_individual(size) for _ in range(300)]
-        Pareto_store = run_nsga_ii(4, problem, indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point)
+        indi_list = [create_individual(problem, size) for _ in range(300)]
+        Pareto_store = run_nsga_ii(4, problem, indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point, scale)
         end = time.time()
         hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
         hv_list.append(hv)
