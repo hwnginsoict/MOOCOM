@@ -244,7 +244,7 @@ if __name__ == "__main__":
         ref_point = np.array([-30, -30])
         scale = 45*45
 
-    print(f"bi kp {size}")
+    print(f"pfg bi kp {size}")
     print(ref_point)
 
     data = GetData(num,size)
