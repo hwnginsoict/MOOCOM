@@ -186,7 +186,7 @@ if __name__ == "__main__":
         indi_list = [create_individual(problem, size) for _ in range(300)]
         Pareto_store = run_nsga_ii(4, problem, indi_list, 300, 300, crossover, mutation, 0.5, 0.1, tour_cost, ref_point, scale)
         end = time.time()
-        hv  = cal_hv_front(Pareto_store, ref_point) / np.prod(ref_point)
+        hv  = cal_hv_front(Pareto_store, ref_point) / scale
         hv_list.append(hv)
         tim = end - start
         time_list.append(tim)

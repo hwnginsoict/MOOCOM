@@ -33,6 +33,7 @@ def cost(solution: np.ndarray, weight_lst: np.ndarray, value1_lst: np.ndarray, v
     return -total_val1, -total_val2  
 
 def tour_cost(instance, route):
+    # print(instance)
     weight_lst, value1_lst, value2_lst, capacity = instance
     return cost(route.chromosome, weight_lst, value1_lst, value2_lst, capacity)
 

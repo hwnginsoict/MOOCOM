@@ -72,7 +72,7 @@ class MOEADPopulation(Population):
             parent1, parent2 = np.random.choice(self.neighborhoods[i].tolist(), 2, replace=False)
             off1, off2 = crossover_operator(problem, self.indivs[parent1], self.indivs[parent2])
             if np.random.rand() < mutation_rate:
-                off1 = mutation_operator(off1)
+                off1 = mutation_operator(problem,off1)
             offspring.append(off1)
         return offspring
     
@@ -130,7 +130,7 @@ class MOEADPopulation(Population):
 
 
 def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighborhood_size, 
-              init_weight_vectors, crossover_operator, mutation_operator, mutation_rate, cal_fitness, ref_point):
+              init_weight_vectors, crossover_operator, mutation_operator, mutation_rate, cal_fitness, ref_point, scale):
     np.random.seed(0)
     moead_pop = MOEADPopulation(pop_size, neighborhood_size, init_weight_vectors)
     moead_pop.pre_indi_gen(indi_list)
@@ -178,12 +178,12 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
         for indi in moead_pop.external_pop:
             Pareto_store.append(list(indi.objectives))
         history[gen+1] = Pareto_store
-        print(gen, cal_hv_front(moead_pop.external_pop, ref_point)/np.prod(ref_point))
+        print(gen, cal_hv_front(moead_pop.external_pop, ref_point)/scale)
 
     pool.close()
 
-    print("Last:",  cal_hv_front(moead_pop.external_pop, ref_point)/np.prod(ref_point))
-    return cal_hv_front(moead_pop.external_pop, ref_point)/np.prod(ref_point)
+    print("Last:",  cal_hv_front(moead_pop.external_pop, ref_point)/scale)
+    return cal_hv_front(moead_pop.external_pop, ref_point)/scale
 
     # for i in moead_pop.external_pop:
     #     print(i.objectives)
@@ -205,23 +205,34 @@ import time
 if __name__ == "__main__":
     from util_bi_kp import GetData, crossover, mutation, tour_cost, create_individual
 
-    num = 20
+    num = 8
 
 
-    size = 50 #doi
+    size = 50 # 50, 100, 200
+
+    if size == 50:
+        ref_point = np.array([-5, -5])
+        scale = 25*25
+    elif size == 100:   
+        ref_point = np.array([-20, -20])
+        scale = 30*30
+    elif size == 200:
+        ref_point = np.array([-30, -30])
+        scale = 45*45
+
     data = GetData(num,size)
     problems = data.generate_instances()
 
-    ref_point = np.array([35, 35]) #doi
+    print(f"moead bi kp {size}")
 
     hv_list = []
     time_list = []
 
     for problem in problems:
         time_start = time.time()
-        indi_list = [create_individual(size) for _ in range(500)]
-        result = run_moead(4, problem[0], indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
-                0.1, tour_cost, ref_point)
+        indi_list = [create_individual(problem,size) for _ in range(500)]
+        result = run_moead(4, problem, indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
+                0.1, tour_cost, ref_point, scale)
         time_end = time.time()
         time_list.append(time_end - time_start)
         hv_list.append(result)
