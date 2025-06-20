@@ -233,7 +233,7 @@ if __name__ == "__main__":
     
     num = 20
 
-    size = 50 # 20, 50, 100
+    size = 100 # 20, 50, 100
 
     if size == 20:
         ref_point = np.array([20,20])
@@ -241,7 +241,7 @@ if __name__ == "__main__":
         ref_point = np.array([35,35])
     elif size == 100:
         ref_point = np.array([65,65])
-    print(f"nsga bi tsp {size}")
+    print(f"pfg bi tsp {size}")
     print(ref_point)
 
     data = GetData(num,size)
