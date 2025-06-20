@@ -159,10 +159,16 @@ if __name__ == "__main__":
     num = 20
 
     size = 20
-    ref_point = np.array([20, 20])
 
-    print("bi tsp 20")
+    if size == 20:
+        ref_point = np.array([20,20])
+    elif size == 50:
+        ref_point = np.array([35,35])
+    elif size == 100:
+        ref_point = np.array([65,65])
+    print(f"nsga bi tsp {size}")
     print(ref_point)
+
 
     data = GetData(num,size)
     problems = data.generate_instances()
@@ -208,7 +214,7 @@ if __name__ == "__main__":
     serializable_obj_json = convert_to_serializable(obj_json)
 
     # Save to JSON
-    with open("pareto_objectives.json", "w") as f:
+    with open(f"nsga_bi_tsp_{size}.json", "w") as f:
         json.dump(serializable_obj_json, f, indent=2)
 
     print("HV LIST", hv_list)

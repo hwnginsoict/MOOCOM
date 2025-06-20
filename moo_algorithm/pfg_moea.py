@@ -229,14 +229,19 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
 import time, json
 
 if __name__ == "__main__":
-    from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+    from util_tri_tsp import GetData, crossover, mutation, tour_cost, create_individual
     
     num = 20
 
-    size = 50
-    ref_point = np.array([35, 35])
+    size = 20
 
-    print("bi tsp 50")
+    if size == 20:
+        ref_point = np.array([20,20])
+    elif size == 50:
+        ref_point = np.array([35,35])
+    elif size == 100:
+        ref_point = np.array([65,65])
+    print(f"nsga tri tsp {size}")
     print(ref_point)
 
     data = GetData(num,size)
@@ -275,7 +280,7 @@ if __name__ == "__main__":
     serializable_obj_json = convert_to_serializable(obj_json)
 
     # Save to JSON
-    with open("pareto_objectives.json", "w") as f:
+    with open(f"pfg_tri_tsp_{size}.json", "w") as f:
         json.dump(serializable_obj_json, f, indent=2)
 
     print("HV LIST", hv_list)
