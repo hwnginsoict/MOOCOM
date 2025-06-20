@@ -230,13 +230,17 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
 #     print("AVG TIME", sum(time_list)/len(time_list))
  
 
-import time, json
+import time, json, argparse
 if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
     num =20
 
-    size = 20
+    parser = argparse.ArgumentParser(description="Multi-objective knapsack problem solver")
+    parser.add_argument('--size', type=int, default=20, help="Size")
+    args = parser.parse_args()
+
+    size = args.size
 
     if size == 20:
         ref_point = np.array([20,20])
@@ -244,7 +248,7 @@ if __name__ == "__main__":
         ref_point = np.array([35,35])
     elif size == 100:
         ref_point = np.array([65,65])
-    print(f"nsga bi tsp {size}")
+    print(f"moead bi tsp {size}")
     print(ref_point)
 
     data = GetData(num,size)
@@ -264,6 +268,7 @@ if __name__ == "__main__":
                 0.1, tour_cost, ref_point)
         end = time.time()
         time_list.append(end - start)
+        hv_list.append(cal_hv_front(pareto_store, ref_point) / np.prod(ref_point))
 
         temp = []
 
