@@ -226,14 +226,18 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
     return pop.ParetoFront[0]
 
 
-import time, json
+import time, json, argparse
 
 if __name__ == "__main__":
     from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
     
     num = 20
 
-    size = 100 # 20, 50, 100
+    parser = argparse.ArgumentParser(description="Multi-objective knapsack problem solver")
+    parser.add_argument('--size', type=int, default=20, help="Size")
+    args = parser.parse_args()
+
+    size = args.size
 
     if size == 20:
         ref_point = np.array([20,20])
@@ -260,6 +264,7 @@ if __name__ == "__main__":
         pareto_store = run_pfgmoea(4, problem[0], indi_list, 300, 300, 5, 0.01, crossover, mutation, 0.9, 0.1, tour_cost, ref_point)
         end  = time.time()
         time_list.append(end - start)
+        hv_list.append(cal_hv_front(pareto_store, ref_point) / np.prod(ref_point))
 
         temp = []
 
