@@ -236,7 +236,7 @@ if __name__ == "__main__":
 
     num = 8
 
-    size = 50 # 20, 50, 100
+    size = 100 # 20, 50, 100
 
     if size == 20:
         ref_point = np.array([30, 8])
