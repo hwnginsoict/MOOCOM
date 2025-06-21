@@ -232,7 +232,7 @@ def run_moead(processing_number, problem, indi_list, pop_size, max_gen, neighbor
 
 import time, json, argparse
 if __name__ == "__main__":
-    from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+    from util_tri_tsp import GetData, crossover, mutation, tour_cost, create_individual
 
     num =20
 
@@ -243,12 +243,12 @@ if __name__ == "__main__":
     size = args.size
 
     if size == 20:
-        ref_point = np.array([20,20])
+        ref_point = np.array([20,20,20])
     elif size == 50:
-        ref_point = np.array([35,35])
+        ref_point = np.array([35,35,35])
     elif size == 100:
-        ref_point = np.array([65,65])
-    print(f"moead bi tsp {size}")
+        ref_point = np.array([65,65,65])
+    print(f"moead tri tsp {size}")
     print(ref_point)
 
     data = GetData(num,size)
@@ -264,7 +264,7 @@ if __name__ == "__main__":
     for problem in problems:
         start = time.time()
         indi_list = [create_individual(size) for _ in range(500)]
-        pareto_store = run_moead(4, problem[0], indi_list, 500, 500, 10, init_weight_vectors_2d, crossover, mutation, 
+        pareto_store = run_moead(4, problem[0], indi_list, 500, 500, 10, init_weight_vectors_3d, crossover, mutation, 
                 0.1, tour_cost, ref_point)
         end = time.time()
         time_list.append(end - start)
@@ -288,7 +288,7 @@ if __name__ == "__main__":
     serializable_obj_json = convert_to_serializable(obj_json)
 
     # Save to JSON
-    with open(f"moead_bi_tsp_{size}.json", "w") as f:
+    with open(f"moead_tri_tsp_{size}.json", "w") as f:
         json.dump(serializable_obj_json, f, indent=2)
 
     print("HV LIST", hv_list)
