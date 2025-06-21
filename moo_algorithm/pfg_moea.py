@@ -245,7 +245,7 @@ if __name__ == "__main__":
         ref_point = np.array([35,35,35])
     elif size == 100:
         ref_point = np.array([65,65,65])
-    print(f"pfg bi tsp {size}")
+    print(f"pfg tri tsp {size}")
     print(ref_point)
 
     data = GetData(num,size)
