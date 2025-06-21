@@ -229,7 +229,7 @@ def run_pfgmoea(processing_number, problem, indi_list, pop_size, max_gen, GK, si
 import time, json, argparse
 
 if __name__ == "__main__":
-    from util_bi_tsp import GetData, crossover, mutation, tour_cost, create_individual
+    from util_tri_tsp import GetData, crossover, mutation, tour_cost, create_individual
     
     num = 20
 
@@ -240,11 +240,11 @@ if __name__ == "__main__":
     size = args.size
 
     if size == 20:
-        ref_point = np.array([20,20])
+        ref_point = np.array([20,20,20])
     elif size == 50:
-        ref_point = np.array([35,35])
+        ref_point = np.array([35,35,35])
     elif size == 100:
-        ref_point = np.array([65,65])
+        ref_point = np.array([65,65,65])
     print(f"pfg bi tsp {size}")
     print(ref_point)
 
