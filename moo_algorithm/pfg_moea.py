@@ -231,7 +231,7 @@ import time, json, argparse
 if __name__ == "__main__":
     from util_tri_tsp import GetData, crossover, mutation, tour_cost, create_individual
     
-    num = 20
+    num = 1
 
     parser = argparse.ArgumentParser(description="Multi-objective knapsack problem solver")
     parser.add_argument('--size', type=int, default=20, help="Size")
